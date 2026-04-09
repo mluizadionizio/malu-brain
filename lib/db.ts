@@ -89,12 +89,42 @@ export async function initDb() {
       FOREIGN KEY (habit_id) REFERENCES habits(id) ON DELETE CASCADE,
       UNIQUE(habit_id, date)
     );
+
+    CREATE TABLE IF NOT EXISTS study_topics (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      color TEXT DEFAULT '#3b82f6',
+      days_of_week TEXT DEFAULT '',
+      active INTEGER DEFAULT 1,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS study_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      topic_id INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      completed INTEGER DEFAULT 0,
+      FOREIGN KEY (topic_id) REFERENCES study_topics(id) ON DELETE CASCADE,
+      UNIQUE(topic_id, date)
+    );
+
+    CREATE TABLE IF NOT EXISTS study_sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      course_id INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      module_label TEXT,
+      duration_minutes INTEGER,
+      status TEXT DEFAULT 'done',
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (course_id) REFERENCES study_topics(id) ON DELETE CASCADE
+    );
   `);
 
   // Additive migrations (safe to run multiple times — errors ignored)
   const migrations = [
     'ALTER TABLE finance_entries ADD COLUMN saida_desc TEXT',
     'ALTER TABLE finance_entries ADD COLUMN diario_desc TEXT',
+    'ALTER TABLE study_topics ADD COLUMN total_modules INTEGER',
   ];
   for (const sql of migrations) {
     try { await db.execute({ sql, args: [] }); } catch {}

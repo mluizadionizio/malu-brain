@@ -1,0 +1,88 @@
+import { NextRequest, NextResponse } from 'next/server';
+import db, { initDb } from '@/lib/db';
+
+function addDays(dateStr: string, n: number) {
+  const d = new Date(dateStr + 'T12:00:00');
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+export async function GET(req: NextRequest) {
+  await initDb();
+  const date = req.nextUrl.searchParams.get('date') ?? new Date().toISOString().slice(0, 10);
+  const monthParam = req.nextUrl.searchParams.get('month');
+
+  const topicsRes = await db.execute({ sql: 'SELECT * FROM study_topics WHERE active = 1 ORDER BY created_at ASC', args: [] });
+  const topics = topicsRes.rows as unknown as { id: number; title: string; color: string; days_of_week: string }[];
+
+  // Month view
+  if (monthParam) {
+    const [y, m] = monthParam.split('-').map(Number);
+    const daysInMonth = new Date(y, m, 0).getDate();
+    const monthStart = `${y}-${String(m).padStart(2, '0')}-01`;
+    const monthEnd = `${y}-${String(m).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`;
+
+    const logsRes = await db.execute({
+      sql: 'SELECT topic_id, date, completed FROM study_logs WHERE date >= ? AND date <= ? ORDER BY date ASC',
+      args: [monthStart, monthEnd],
+    });
+
+    const logMap: Record<string, Record<number, number>> = {};
+    for (const row of logsRes.rows as any[]) {
+      if (!logMap[row.date]) logMap[row.date] = {};
+      logMap[row.date][row.topic_id] = Number(row.completed);
+    }
+
+    return NextResponse.json({ topics, logMap, daysInMonth, year: y, month: m });
+  }
+
+  // Day view
+  const [dy, dm, dd] = date.split('-').map(Number);
+  const dow = new Date(dy, dm - 1, dd).getDay();
+
+  const last30: string[] = [];
+  for (let i = 29; i >= 0; i--) last30.push(addDays(date, -i));
+
+  const result = await Promise.all(topics.map(async (t) => {
+    const scheduled_today = t.days_of_week
+      ? t.days_of_week.split(',').includes(String(dow))
+      : false;
+
+    const todayRes = await db.execute({
+      sql: 'SELECT completed FROM study_logs WHERE topic_id = ? AND date = ?',
+      args: [t.id, date],
+    });
+    const completed_today = todayRes.rows[0] ? Number((todayRes.rows[0] as any).completed) : 0;
+
+    const logsRes = await db.execute({
+      sql: 'SELECT date, completed FROM study_logs WHERE topic_id = ? AND date >= ? AND date <= ? ORDER BY date ASC',
+      args: [t.id, last30[0], date],
+    });
+    const logMap: Record<string, number> = {};
+    for (const row of logsRes.rows) {
+      logMap[(row as any).date] = Number((row as any).completed);
+    }
+    const last_30 = last30.map(d => ({ date: d, completed: logMap[d] ?? 0 }));
+
+    let streak = 0;
+    for (let i = last_30.length - 1; i >= 0; i--) {
+      if (last_30[i].completed) streak++;
+      else break;
+    }
+
+    return { ...t, scheduled_today, completed_today, streak, last_30 };
+  }));
+
+  return NextResponse.json(result);
+}
+
+export async function POST(req: NextRequest) {
+  await initDb();
+  const { topic_id, date, completed } = await req.json();
+  await db.execute({
+    sql: `INSERT INTO study_logs (topic_id, date, completed) VALUES (?, ?, ?)
+          ON CONFLICT(topic_id, date) DO UPDATE SET completed = excluded.completed`,
+    args: [topic_id, date, completed ? 1 : 0],
+  });
+  return NextResponse.json({ ok: true });
+}

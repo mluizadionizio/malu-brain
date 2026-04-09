@@ -351,7 +351,7 @@ export default function FinancasPage() {
             <p className="text-gray-400 text-xs mb-1">Gastos Diários</p>
             <p className="text-base md:text-xl font-bold text-orange-400">R$ {fmt(totalDiario)}</p>
           </div>
-          <div className={`bg-[#1a1a1a] border rounded-xl p-3 md:p-4 col-span-2 md:col-span-1 ${saldoFinal >= 0 ? "border-green-500/30" : "border-red-500/30"}`}>
+          <div className={`bg-[#1a1a1a] border rounded-xl p-3 md:p-4 ${saldoFinal >= 0 ? "border-green-500/30" : "border-red-500/30"}`}>
             <p className="text-gray-400 text-xs mb-1">Saldo Líquido</p>
             <p className={`text-base md:text-xl font-bold ${saldoFinal >= 0 ? "text-green-400" : "text-red-400"}`}>
               R$ {fmtSaldo(saldoFinal)}
