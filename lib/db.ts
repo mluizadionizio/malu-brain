@@ -93,6 +93,7 @@ export async function initDb() {
 
   // Additive migrations (safe to run multiple times — errors ignored)
   const migrations = [
+    'ALTER TABLE finance_entries ADD COLUMN saida_desc TEXT',
     'ALTER TABLE finance_entries ADD COLUMN diario_desc TEXT',
   ];
   for (const sql of migrations) {
