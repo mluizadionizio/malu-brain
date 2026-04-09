@@ -52,6 +52,17 @@ export async function initDb() {
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE SET NULL
     );
+
+    CREATE TABLE IF NOT EXISTS finance_entries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      year INTEGER NOT NULL,
+      month INTEGER NOT NULL,
+      day INTEGER NOT NULL,
+      entrada REAL DEFAULT 0,
+      saida REAL DEFAULT 0,
+      diario REAL DEFAULT 0,
+      UNIQUE(year, month, day)
+    );
   `);
 }
 
