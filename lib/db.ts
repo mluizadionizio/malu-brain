@@ -61,6 +61,7 @@ export async function initDb() {
       entrada REAL DEFAULT 0,
       saida REAL DEFAULT 0,
       diario REAL DEFAULT 0,
+      saida_desc TEXT,
       UNIQUE(year, month, day)
     );
 

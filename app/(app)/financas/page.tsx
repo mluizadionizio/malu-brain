@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
 
 const MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-const YEARS = [2026, 2027, 2028];
 
-type Entry = { id?: number; year: number; month: number; day: number; entrada: number; saida: number; diario: number };
+type Entry = {
+  id?: number; year: number; month: number; day: number;
+  entrada: number; saida: number; diario: number; saida_desc?: string;
+};
 
 function fmt(v: number) {
   if (v === 0) return "—";
@@ -22,6 +24,29 @@ function daysInMonth(year: number, month: number) {
   return new Date(year, month, 0).getDate();
 }
 
+// Evaluate simple math expressions like "20+50" or "1089.17+905.48"
+function evalExpr(str: string): number {
+  const cleaned = str.replace(/,/g, ".").replace(/[^0-9+\-*/.]/g, "");
+  if (!cleaned) return 0;
+  try {
+    // eslint-disable-next-line no-new-func
+    const result = Function('"use strict"; return (' + cleaned + ')')();
+    return typeof result === "number" && isFinite(result) ? result : 0;
+  } catch {
+    return parseFloat(cleaned) || 0;
+  }
+}
+
+function saldoColor(saldo: number, maxSaldo: number): string {
+  if (saldo <= 0) return "text-red-400";
+  if (maxSaldo <= 0) return "text-white";
+  const ratio = saldo / maxSaldo;
+  if (ratio >= 0.6) return "text-green-400";
+  if (ratio >= 0.3) return "text-yellow-400";
+  return "text-orange-400";
+}
+
+// Editable number cell with expression support
 function EditableCell({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
@@ -34,7 +59,7 @@ function EditableCell({ value, onChange }: { value: number; onChange: (v: number
   }
 
   function commit() {
-    const n = parseFloat(draft.replace(",", ".")) || 0;
+    const n = evalExpr(draft);
     setEditing(false);
     if (n !== value) onChange(n);
   }
@@ -48,7 +73,8 @@ function EditableCell({ value, onChange }: { value: number; onChange: (v: number
         onChange={e => setDraft(e.target.value)}
         onBlur={commit}
         onKeyDown={e => { if (e.key === "Enter") commit(); if (e.key === "Escape") setEditing(false); }}
-        className="w-full bg-[#252525] border border-blue-500 rounded px-2 py-1 text-sm text-white outline-none text-right"
+        className="w-full bg-[#252525] border border-blue-500 rounded px-2 py-1 text-sm text-white outline-none text-right font-mono"
+        placeholder="ex: 50+30"
       />
     );
   }
@@ -59,6 +85,101 @@ function EditableCell({ value, onChange }: { value: number; onChange: (v: number
       className="cursor-pointer hover:bg-white/5 rounded px-2 py-1 text-sm text-right text-gray-300 hover:text-white transition-colors"
     >
       {value === 0 ? <span className="text-gray-600">—</span> : fmt(value)}
+    </div>
+  );
+}
+
+// Saída cell with description tooltip/popover
+function SaidaCell({ value, desc, onChangeValue, onChangeDesc }: {
+  value: number;
+  desc: string;
+  onChangeValue: (v: number) => void;
+  onChangeDesc: (d: string) => void;
+}) {
+  const [editingValue, setEditingValue] = useState(false);
+  const [editingDesc, setEditingDesc] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [descDraft, setDescDraft] = useState("");
+  const ref = useRef<HTMLInputElement>(null);
+  const descRef = useRef<HTMLTextAreaElement>(null);
+
+  function openValue() {
+    setDraft(value === 0 ? "" : String(value));
+    setEditingValue(true);
+    setTimeout(() => ref.current?.select(), 0);
+  }
+
+  function commitValue() {
+    const n = evalExpr(draft);
+    setEditingValue(false);
+    if (n !== value) onChangeValue(n);
+  }
+
+  function openDesc() {
+    setDescDraft(desc);
+    setEditingDesc(true);
+    setTimeout(() => descRef.current?.focus(), 0);
+  }
+
+  function commitDesc() {
+    setEditingDesc(false);
+    if (descDraft !== desc) onChangeDesc(descDraft);
+  }
+
+  return (
+    <div className="flex items-center gap-1 group/saida">
+      {editingValue ? (
+        <input
+          ref={ref}
+          type="text"
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onBlur={commitValue}
+          onKeyDown={e => { if (e.key === "Enter") commitValue(); if (e.key === "Escape") setEditingValue(false); }}
+          className="flex-1 bg-[#252525] border border-blue-500 rounded px-2 py-1 text-sm text-white outline-none text-right font-mono"
+          placeholder="ex: 50+30"
+        />
+      ) : (
+        <div
+          onClick={openValue}
+          className="flex-1 cursor-pointer hover:bg-white/5 rounded px-2 py-1 text-sm text-right text-gray-300 hover:text-white transition-colors"
+        >
+          {value === 0 ? <span className="text-gray-600">—</span> : fmt(value)}
+        </div>
+      )}
+
+      {/* Note icon */}
+      <button
+        onClick={openDesc}
+        className={`flex-shrink-0 p-0.5 rounded transition-colors ${desc ? "text-blue-400 opacity-100" : "text-gray-600 opacity-0 group-hover/saida:opacity-100"}`}
+        title={desc || "Adicionar descrição"}
+      >
+        <FileText size={11} />
+      </button>
+
+      {/* Description popover */}
+      {editingDesc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={commitDesc}>
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-4 w-80 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-medium text-white">Descrição da saída</p>
+              <button onClick={commitDesc} className="text-gray-400 hover:text-white"><X size={16} /></button>
+            </div>
+            <textarea
+              ref={descRef}
+              value={descDraft}
+              onChange={e => setDescDraft(e.target.value)}
+              onKeyDown={e => { if (e.key === "Escape") commitDesc(); }}
+              rows={3}
+              placeholder="Ex: Aluguel 1500 + luz 200 + água 80"
+              className="w-full bg-[#252525] border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-blue-500 resize-none placeholder-gray-600"
+            />
+            <div className="flex justify-end gap-2 mt-3">
+              <button onClick={commitDesc} className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">Salvar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -89,6 +210,7 @@ export default function FinancasPage() {
         entrada: Number(r.entrada) || 0,
         saida: Number(r.saida) || 0,
         diario: Number(r.diario) || 0,
+        saida_desc: r.saida_desc ?? "",
       })));
       setLoading(false);
     });
@@ -98,10 +220,10 @@ export default function FinancasPage() {
   const totalDays = Array.from({ length: days }, (_, i) => i + 1);
 
   function getEntry(day: number): Entry {
-    return entries.find(e => e.day === day) ?? { year, month, day, entrada: 0, saida: 0, diario: 0 };
+    return entries.find(e => e.day === day) ?? { year, month, day, entrada: 0, saida: 0, diario: 0, saida_desc: "" };
   }
 
-  async function save(day: number, field: "entrada" | "saida" | "diario", value: number) {
+  async function save(day: number, field: keyof Entry, value: number | string) {
     const e = getEntry(day);
     const updated = { ...e, [field]: value };
     setEntries(prev => {
@@ -115,18 +237,19 @@ export default function FinancasPage() {
     });
   }
 
-  // Compute running saldo starting from previous month's balance
+  // Compute running saldo
   let runningBalance = carryover;
   const rows = totalDays.map(day => {
     const e = getEntry(day);
     runningBalance += e.entrada - e.saida - e.diario;
-    return { day, entrada: e.entrada, saida: e.saida, diario: e.diario, saldo: runningBalance };
+    return { day, entrada: e.entrada, saida: e.saida, diario: e.diario, saldo: runningBalance, saida_desc: e.saida_desc ?? "" };
   });
 
   const totalEntrada = rows.reduce((s, r) => s + r.entrada, 0);
   const totalSaida = rows.reduce((s, r) => s + r.saida, 0);
   const totalDiario = rows.reduce((s, r) => s + r.diario, 0);
-  const saldoFinal = totalEntrada - totalSaida - totalDiario;
+  const saldoFinal = carryover + totalEntrada - totalSaida - totalDiario;
+  const maxSaldo = Math.max(...rows.map(r => r.saldo), carryover);
 
   function prevMonth() {
     if (month === 1) { setMonth(12); setYear(y => y - 1); }
@@ -185,11 +308,10 @@ export default function FinancasPage() {
 
         {/* Table */}
         <div className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden">
-          {/* Table header */}
           <div className="grid grid-cols-[48px_1fr_1fr_1fr_1fr] border-b border-white/10 bg-[#161616]">
             <div className="px-4 py-3 text-xs text-gray-500 font-medium">Dia</div>
             <div className="px-2 py-3 text-xs text-gray-500 font-medium text-right">Entrada (R$)</div>
-            <div className="px-2 py-3 text-xs text-gray-500 font-medium text-right">Saída (R$)</div>
+            <div className="px-2 py-3 text-xs text-gray-500 font-medium text-right">Saída (R$) <span className="text-gray-600 font-normal">+ nota</span></div>
             <div className="px-2 py-3 text-xs text-gray-500 font-medium text-right">Diário (R$)</div>
             <div className="px-2 py-3 text-xs text-gray-500 font-medium text-right">Saldo Acumulado</div>
           </div>
@@ -198,7 +320,6 @@ export default function FinancasPage() {
             <div className="py-12 text-center text-gray-500 text-sm">Carregando...</div>
           ) : (
             <div>
-              {/* Saldo anterior */}
               {carryover !== 0 && (
                 <div className="grid grid-cols-[48px_1fr_1fr_1fr_1fr] border-b border-white/5 bg-white/[0.02]">
                   <div className="px-4 py-2 text-xs text-gray-600 font-medium flex items-center col-span-4">
@@ -212,25 +333,30 @@ export default function FinancasPage() {
               {rows.map(row => {
                 const isWeekend = [0, 6].includes(new Date(year, month - 1, row.day).getDay());
                 const hasData = row.entrada !== 0 || row.saida !== 0 || row.diario !== 0;
+                const color = hasData ? saldoColor(row.saldo, maxSaldo) : "text-gray-600";
                 return (
                   <div
                     key={row.day}
-                    className={`grid grid-cols-[48px_1fr_1fr_1fr_1fr] border-b border-white/5 group hover:bg-white/[0.02] transition-colors ${isWeekend ? "bg-white/[0.01]" : ""}`}
+                    className={`grid grid-cols-[48px_1fr_1fr_1fr_1fr] border-b border-white/5 hover:bg-white/[0.02] transition-colors ${isWeekend ? "bg-white/[0.01]" : ""}`}
                   >
                     <div className={`px-4 py-1.5 text-sm font-medium flex items-center ${isWeekend ? "text-gray-500" : "text-gray-400"}`}>
                       {row.day}
                     </div>
                     <EditableCell value={row.entrada} onChange={v => save(row.day, "entrada", v)} />
-                    <EditableCell value={row.saida} onChange={v => save(row.day, "saida", v)} />
+                    <SaidaCell
+                      value={row.saida}
+                      desc={row.saida_desc}
+                      onChangeValue={v => save(row.day, "saida", v)}
+                      onChangeDesc={d => save(row.day, "saida_desc", d)}
+                    />
                     <EditableCell value={row.diario} onChange={v => save(row.day, "diario", v)} />
-                    <div className={`px-2 py-1.5 text-sm text-right font-mono ${row.saldo < 0 ? "text-red-400" : hasData ? "text-white" : "text-gray-600"}`}>
+                    <div className={`px-2 py-1.5 text-sm text-right font-mono ${color}`}>
                       {hasData ? `R$ ${fmtSaldo(row.saldo)}` : "—"}
                     </div>
                   </div>
                 );
               })}
 
-              {/* Totals row */}
               <div className="grid grid-cols-[48px_1fr_1fr_1fr_1fr] bg-[#161616] border-t border-white/10">
                 <div className="px-4 py-3 text-xs text-gray-500 font-medium">Total</div>
                 <div className="px-2 py-3 text-sm text-right font-semibold text-green-400">{fmt(totalEntrada)}</div>
