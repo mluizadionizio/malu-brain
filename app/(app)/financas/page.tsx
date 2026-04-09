@@ -46,11 +46,15 @@ function saldoColor(saldo: number, maxSaldo: number): string {
   return "text-orange-400";
 }
 
-// Editable number cell with expression support
+// Editable number cell with expression support + auto-save on unmount
 function EditableCell({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
   const ref = useRef<HTMLInputElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Always-current snapshot so the unmount cleanup can read latest values
+  const stateRef = useRef({ draft: "", value, onChange });
+  stateRef.current = { draft, value, onChange };
 
   function open() {
     setDraft(value === 0 ? "" : String(value));
@@ -59,10 +63,33 @@ function EditableCell({ value, onChange }: { value: number; onChange: (v: number
   }
 
   function commit() {
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
     const n = evalExpr(draft);
     setEditing(false);
     if (n !== value) onChange(n);
   }
+
+  function handleChange(text: string) {
+    setDraft(text);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      timerRef.current = null;
+      const n = evalExpr(text);
+      if (n !== stateRef.current.value) stateRef.current.onChange(n);
+    }, 600);
+  }
+
+  // Flush pending debounced save if component unmounts (e.g. sidebar navigation)
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        const { draft: d, value: v, onChange: cb } = stateRef.current;
+        const n = evalExpr(d);
+        if (n !== v) cb(n);
+      }
+    };
+  }, []); // intentionally empty — only on unmount
 
   if (editing) {
     return (
@@ -70,7 +97,7 @@ function EditableCell({ value, onChange }: { value: number; onChange: (v: number
         ref={ref}
         type="text"
         value={draft}
-        onChange={e => setDraft(e.target.value)}
+        onChange={e => handleChange(e.target.value)}
         onBlur={commit}
         onKeyDown={e => { if (e.key === "Enter") commit(); if (e.key === "Escape") setEditing(false); }}
         className="w-full bg-[#252525] border border-blue-500 rounded px-2 py-1 text-sm text-white outline-none text-right font-mono"
@@ -89,7 +116,7 @@ function EditableCell({ value, onChange }: { value: number; onChange: (v: number
   );
 }
 
-// Cell with editable number + optional note popover
+// Cell with editable number + optional note popover + auto-save on unmount
 function NoteableCell({ value, desc, label, placeholder, onChangeValue, onChangeDesc }: {
   value: number;
   desc: string;
@@ -104,6 +131,9 @@ function NoteableCell({ value, desc, label, placeholder, onChangeValue, onChange
   const [descDraft, setDescDraft] = useState("");
   const ref = useRef<HTMLInputElement>(null);
   const descRef = useRef<HTMLTextAreaElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stateRef = useRef({ draft: "", value, onChangeValue });
+  stateRef.current = { draft, value, onChangeValue };
 
   function openValue() {
     setDraft(value === 0 ? "" : String(value));
@@ -112,10 +142,32 @@ function NoteableCell({ value, desc, label, placeholder, onChangeValue, onChange
   }
 
   function commitValue() {
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
     const n = evalExpr(draft);
     setEditingValue(false);
     if (n !== value) onChangeValue(n);
   }
+
+  function handleValueChange(text: string) {
+    setDraft(text);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      timerRef.current = null;
+      const n = evalExpr(text);
+      if (n !== stateRef.current.value) stateRef.current.onChangeValue(n);
+    }, 600);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        const { draft: d, value: v, onChangeValue: cb } = stateRef.current;
+        const n = evalExpr(d);
+        if (n !== v) cb(n);
+      }
+    };
+  }, []); // intentionally empty — only on unmount
 
   function openDesc() {
     setDescDraft(desc);
@@ -135,7 +187,7 @@ function NoteableCell({ value, desc, label, placeholder, onChangeValue, onChange
           ref={ref}
           type="text"
           value={draft}
-          onChange={e => setDraft(e.target.value)}
+          onChange={e => handleValueChange(e.target.value)}
           onBlur={commitValue}
           onKeyDown={e => { if (e.key === "Enter") commitValue(); if (e.key === "Escape") setEditingValue(false); }}
           className="flex-1 bg-[#252525] border border-blue-500 rounded px-2 py-1 text-sm text-white outline-none text-right font-mono"
@@ -334,7 +386,7 @@ export default function FinancasPage() {
               {rows.map(row => {
                 const isWeekend = [0, 6].includes(new Date(year, month - 1, row.day).getDay());
                 const hasData = row.entrada !== 0 || row.saida !== 0 || row.diario !== 0;
-                const color = hasData ? saldoColor(row.saldo, maxSaldo) : "text-gray-600";
+                const saldoClass = hasData ? saldoColor(row.saldo, maxSaldo) : "text-gray-600/60";
                 return (
                   <div
                     key={row.day}
@@ -360,8 +412,8 @@ export default function FinancasPage() {
                       onChangeValue={v => save(row.day, "diario", v)}
                       onChangeDesc={d => save(row.day, "diario_desc", d)}
                     />
-                    <div className={`px-2 py-1.5 text-sm text-right font-mono ${color}`}>
-                      {hasData ? `R$ ${fmtSaldo(row.saldo)}` : "—"}
+                    <div className={`px-2 py-1.5 text-sm text-right font-mono ${saldoClass}`}>
+                      R$ {fmtSaldo(row.saldo)}
                     </div>
                   </div>
                 );
