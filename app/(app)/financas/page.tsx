@@ -7,7 +7,7 @@ const MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","A
 
 type Entry = {
   id?: number; year: number; month: number; day: number;
-  entrada: number; saida: number; diario: number; saida_desc?: string;
+  entrada: number; saida: number; diario: number; saida_desc?: string; diario_desc?: string;
 };
 
 function fmt(v: number) {
@@ -89,10 +89,12 @@ function EditableCell({ value, onChange }: { value: number; onChange: (v: number
   );
 }
 
-// Saída cell with description tooltip/popover
-function SaidaCell({ value, desc, onChangeValue, onChangeDesc }: {
+// Cell with editable number + optional note popover
+function NoteableCell({ value, desc, label, placeholder, onChangeValue, onChangeDesc }: {
   value: number;
   desc: string;
+  label: string;
+  placeholder?: string;
   onChangeValue: (v: number) => void;
   onChangeDesc: (d: string) => void;
 }) {
@@ -127,7 +129,7 @@ function SaidaCell({ value, desc, onChangeValue, onChangeDesc }: {
   }
 
   return (
-    <div className="flex items-center gap-1 group/saida">
+    <div className="flex items-center gap-1 group/cell">
       {editingValue ? (
         <input
           ref={ref}
@@ -148,21 +150,19 @@ function SaidaCell({ value, desc, onChangeValue, onChangeDesc }: {
         </div>
       )}
 
-      {/* Note icon */}
       <button
         onClick={openDesc}
-        className={`flex-shrink-0 p-0.5 rounded transition-colors ${desc ? "text-blue-400 opacity-100" : "text-gray-600 opacity-0 group-hover/saida:opacity-100"}`}
-        title={desc || "Adicionar descrição"}
+        className={`flex-shrink-0 p-0.5 rounded transition-colors ${desc ? "text-blue-400 opacity-100" : "text-gray-600 opacity-0 group-hover/cell:opacity-100"}`}
+        title={desc || "Adicionar nota"}
       >
         <FileText size={11} />
       </button>
 
-      {/* Description popover */}
       {editingDesc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={commitDesc}>
           <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-4 w-80 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-medium text-white">Descrição da saída</p>
+              <p className="text-sm font-medium text-white">{label}</p>
               <button onClick={commitDesc} className="text-gray-400 hover:text-white"><X size={16} /></button>
             </div>
             <textarea
@@ -171,7 +171,7 @@ function SaidaCell({ value, desc, onChangeValue, onChangeDesc }: {
               onChange={e => setDescDraft(e.target.value)}
               onKeyDown={e => { if (e.key === "Escape") commitDesc(); }}
               rows={3}
-              placeholder="Ex: Aluguel 1500 + luz 200 + água 80"
+              placeholder={placeholder ?? ""}
               className="w-full bg-[#252525] border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-blue-500 resize-none placeholder-gray-600"
             />
             <div className="flex justify-end gap-2 mt-3">
@@ -211,6 +211,7 @@ export default function FinancasPage() {
         saida: Number(r.saida) || 0,
         diario: Number(r.diario) || 0,
         saida_desc: r.saida_desc ?? "",
+        diario_desc: r.diario_desc ?? "",
       })));
       setLoading(false);
     });
@@ -220,7 +221,7 @@ export default function FinancasPage() {
   const totalDays = Array.from({ length: days }, (_, i) => i + 1);
 
   function getEntry(day: number): Entry {
-    return entries.find(e => e.day === day) ?? { year, month, day, entrada: 0, saida: 0, diario: 0, saida_desc: "" };
+    return entries.find(e => e.day === day) ?? { year, month, day, entrada: 0, saida: 0, diario: 0, saida_desc: "", diario_desc: "" };
   }
 
   async function save(day: number, field: keyof Entry, value: number | string) {
@@ -242,7 +243,7 @@ export default function FinancasPage() {
   const rows = totalDays.map(day => {
     const e = getEntry(day);
     runningBalance += e.entrada - e.saida - e.diario;
-    return { day, entrada: e.entrada, saida: e.saida, diario: e.diario, saldo: runningBalance, saida_desc: e.saida_desc ?? "" };
+    return { day, entrada: e.entrada, saida: e.saida, diario: e.diario, saldo: runningBalance, saida_desc: e.saida_desc ?? "", diario_desc: e.diario_desc ?? "" };
   });
 
   const totalEntrada = rows.reduce((s, r) => s + r.entrada, 0);
@@ -312,7 +313,7 @@ export default function FinancasPage() {
             <div className="px-4 py-3 text-xs text-gray-500 font-medium">Dia</div>
             <div className="px-2 py-3 text-xs text-gray-500 font-medium text-right">Entrada (R$)</div>
             <div className="px-2 py-3 text-xs text-gray-500 font-medium text-right">Saída (R$) <span className="text-gray-600 font-normal">+ nota</span></div>
-            <div className="px-2 py-3 text-xs text-gray-500 font-medium text-right">Diário (R$)</div>
+            <div className="px-2 py-3 text-xs text-gray-500 font-medium text-right">Diário (R$) <span className="text-gray-600 font-normal">+ nota</span></div>
             <div className="px-2 py-3 text-xs text-gray-500 font-medium text-right">Saldo Acumulado</div>
           </div>
 
@@ -343,13 +344,22 @@ export default function FinancasPage() {
                       {row.day}
                     </div>
                     <EditableCell value={row.entrada} onChange={v => save(row.day, "entrada", v)} />
-                    <SaidaCell
+                    <NoteableCell
                       value={row.saida}
                       desc={row.saida_desc}
+                      label="Nota da saída"
+                      placeholder="Ex: Aluguel 1500 + luz 200 + água 80"
                       onChangeValue={v => save(row.day, "saida", v)}
                       onChangeDesc={d => save(row.day, "saida_desc", d)}
                     />
-                    <EditableCell value={row.diario} onChange={v => save(row.day, "diario", v)} />
+                    <NoteableCell
+                      value={row.diario}
+                      desc={row.diario_desc}
+                      label="Nota do diário"
+                      placeholder="Ex: Ifood 35 + farmácia 22"
+                      onChangeValue={v => save(row.day, "diario", v)}
+                      onChangeDesc={d => save(row.day, "diario_desc", d)}
+                    />
                     <div className={`px-2 py-1.5 text-sm text-right font-mono ${color}`}>
                       {hasData ? `R$ ${fmtSaldo(row.saldo)}` : "—"}
                     </div>

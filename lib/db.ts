@@ -90,6 +90,14 @@ export async function initDb() {
       UNIQUE(habit_id, date)
     );
   `);
+
+  // Additive migrations (safe to run multiple times — errors ignored)
+  const migrations = [
+    'ALTER TABLE finance_entries ADD COLUMN diario_desc TEXT',
+  ];
+  for (const sql of migrations) {
+    try { await db.execute({ sql, args: [] }); } catch {}
+  }
 }
 
 export default db;

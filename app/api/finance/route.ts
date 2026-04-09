@@ -21,17 +21,18 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   await initDb();
   const body = await req.json();
-  const { year, month, day, entrada, saida, diario, saida_desc } = body;
+  const { year, month, day, entrada, saida, diario, saida_desc, diario_desc } = body;
 
   await db.execute({
-    sql: `INSERT INTO finance_entries (year, month, day, entrada, saida, diario, saida_desc)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
+    sql: `INSERT INTO finance_entries (year, month, day, entrada, saida, diario, saida_desc, diario_desc)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(year, month, day) DO UPDATE SET
             entrada = excluded.entrada,
             saida = excluded.saida,
             diario = excluded.diario,
-            saida_desc = excluded.saida_desc`,
-    args: [year, month, day, entrada ?? 0, saida ?? 0, diario ?? 0, saida_desc ?? null],
+            saida_desc = excluded.saida_desc,
+            diario_desc = excluded.diario_desc`,
+    args: [year, month, day, entrada ?? 0, saida ?? 0, diario ?? 0, saida_desc ?? null, diario_desc ?? null],
   });
 
   const result = await db.execute({
