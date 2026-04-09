@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-const PIN = process.env.NEXT_PUBLIC_PIN_CODE ?? "1234";
+const PIN = process.env.NEXT_PUBLIC_PIN_CODE ?? "159852";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,8 +11,8 @@ export default function LoginPage() {
   const [error, setError] = useState(false);
   const [shake, setShake] = useState(false);
 
-  function handleKey(digit: string) {
-    if (value.length >= 6) return;
+  function handleDigit(digit: string) {
+    if (value.length >= PIN.length) return;
     const next = value + digit;
     setValue(next);
     if (next.length === PIN.length) {
@@ -31,6 +31,19 @@ export default function LoginPage() {
     setValue(v => v.slice(0, -1));
     setError(false);
   }
+
+  // Suporte a teclado físico
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key >= "0" && e.key <= "9") {
+        handleDigit(e.key);
+      } else if (e.key === "Backspace") {
+        handleBackspace();
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [value]); // re-registra quando value muda para closure atualizada
 
   return (
     <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center">
@@ -62,7 +75,7 @@ export default function LoginPage() {
             k === "" ? <div key={i} /> : (
               <button
                 key={i}
-                onClick={() => k === "⌫" ? handleBackspace() : handleKey(k)}
+                onClick={() => k === "⌫" ? handleBackspace() : handleDigit(k)}
                 className="w-16 h-16 rounded-2xl bg-[#1a1a1a] border border-white/10 text-white text-xl font-medium hover:bg-white/10 active:scale-95 transition-all"
               >
                 {k}
@@ -70,6 +83,8 @@ export default function LoginPage() {
             )
           ))}
         </div>
+
+        <p className="text-gray-700 text-xs">ou use o teclado</p>
       </div>
 
       <style>{`

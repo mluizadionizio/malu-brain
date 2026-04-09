@@ -45,6 +45,7 @@ const STATUS_COLORS: Record<string, string> = {
   ativo: "bg-green-500/20 text-green-400 border border-green-500/30",
   pausado: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
   churn: "bg-red-500/20 text-red-400 border border-red-500/30",
+  arquivado: "bg-gray-500/20 text-gray-400 border border-gray-500/30",
 };
 
 const PLATFORM_COLORS: Record<string, string> = {
@@ -384,15 +385,21 @@ export default function Home() {
     return matchSearch && matchStatus && matchPending;
   });
 
-  if (sortField) {
-    filtered = [...filtered].sort((a, b) => {
-      const av = sortField === "monthly_budget" ? (a.monthly_budget || 0) : (a[sortField] || "").toString().toLowerCase();
-      const bv = sortField === "monthly_budget" ? (b.monthly_budget || 0) : (b[sortField] || "").toString().toLowerCase();
-      if (av < bv) return sortDir === "asc" ? -1 : 1;
-      if (av > bv) return sortDir === "asc" ? 1 : -1;
-      return 0;
-    });
-  }
+  filtered = [...filtered].sort((a, b) => {
+    // churn e arquivado sempre no final
+    const aLast = (a.status === "churn" || a.status === "arquivado") ? 1 : 0;
+    const bLast = (b.status === "churn" || b.status === "arquivado") ? 1 : 0;
+    if (aLast !== bLast) return aLast - bLast;
+    // arquivado depois do churn
+    if (a.status === "churn" && b.status === "arquivado") return -1;
+    if (a.status === "arquivado" && b.status === "churn") return 1;
+    if (!sortField) return 0;
+    const av = sortField === "monthly_budget" ? (a.monthly_budget || 0) : (a[sortField] || "").toString().toLowerCase();
+    const bv = sortField === "monthly_budget" ? (b.monthly_budget || 0) : (b[sortField] || "").toString().toLowerCase();
+    if (av < bv) return sortDir === "asc" ? -1 : 1;
+    if (av > bv) return sortDir === "asc" ? 1 : -1;
+    return 0;
+  });
 
   function generateReport() {
     const today = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -512,6 +519,7 @@ export default function Home() {
             <option value="ativo">Ativo</option>
             <option value="pausado">Pausado</option>
             <option value="churn">Churn</option>
+            <option value="arquivado">Arquivado</option>
           </select>
           <button
             onClick={() => setFilterPending(p => !p)}
@@ -638,6 +646,7 @@ export default function Home() {
                           { label: "ativo", value: "ativo" },
                           { label: "pausado", value: "pausado" },
                           { label: "churn", value: "churn" },
+                          { label: "arquivado", value: "arquivado" },
                         ]}
                         onSave={(v) => updateClient(c.id, "status", v)}
                         display={

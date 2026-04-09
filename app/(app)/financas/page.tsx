@@ -69,20 +69,29 @@ export default function FinancasPage() {
   const [month, setMonth] = useState(today.getMonth() + 1);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [carryover, setCarryover] = useState(0);
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/finance?year=${year}&month=${month}`)
-      .then(r => r.json())
-      .then(rows => {
-        setEntries(rows.map((r: any) => ({
-          ...r,
-          entrada: Number(r.entrada) || 0,
-          saida: Number(r.saida) || 0,
-          diario: Number(r.diario) || 0,
-        })));
-        setLoading(false);
-      });
+    const prevMonth = month === 1 ? 12 : month - 1;
+    const prevYear = month === 1 ? year - 1 : year;
+
+    Promise.all([
+      fetch(`/api/finance?year=${year}&month=${month}`).then(r => r.json()),
+      fetch(`/api/finance?year=${prevYear}&month=${prevMonth}`).then(r => r.json()),
+    ]).then(([current, prev]) => {
+      const prevBalance = (prev as any[]).reduce((sum: number, e: any) =>
+        sum + (Number(e.entrada) || 0) - (Number(e.saida) || 0) - (Number(e.diario) || 0), 0
+      );
+      setCarryover(prevBalance);
+      setEntries(current.map((r: any) => ({
+        ...r,
+        entrada: Number(r.entrada) || 0,
+        saida: Number(r.saida) || 0,
+        diario: Number(r.diario) || 0,
+      })));
+      setLoading(false);
+    });
   }, [year, month]);
 
   const days = daysInMonth(year, month);
@@ -106,8 +115,8 @@ export default function FinancasPage() {
     });
   }
 
-  // Compute running saldo
-  let runningBalance = 0;
+  // Compute running saldo starting from previous month's balance
+  let runningBalance = carryover;
   const rows = totalDays.map(day => {
     const e = getEntry(day);
     runningBalance += e.entrada - e.saida - e.diario;
@@ -189,6 +198,17 @@ export default function FinancasPage() {
             <div className="py-12 text-center text-gray-500 text-sm">Carregando...</div>
           ) : (
             <div>
+              {/* Saldo anterior */}
+              {carryover !== 0 && (
+                <div className="grid grid-cols-[48px_1fr_1fr_1fr_1fr] border-b border-white/5 bg-white/[0.02]">
+                  <div className="px-4 py-2 text-xs text-gray-600 font-medium flex items-center col-span-4">
+                    Saldo anterior
+                  </div>
+                  <div className={`px-2 py-2 text-sm text-right font-semibold ${carryover >= 0 ? "text-gray-400" : "text-red-400"}`}>
+                    R$ {fmtSaldo(carryover)}
+                  </div>
+                </div>
+              )}
               {rows.map(row => {
                 const isWeekend = [0, 6].includes(new Date(year, month - 1, row.day).getDay());
                 const hasData = row.entrada !== 0 || row.saida !== 0 || row.diario !== 0;

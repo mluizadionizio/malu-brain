@@ -3,10 +3,11 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { TrendingUp, DollarSign, Calendar } from "lucide-react";
+import { TrendingUp, DollarSign, Calendar, Sun } from "lucide-react";
 
 const NAV = [
   { href: "/trafego", label: "Tráfego Pago", icon: TrendingUp },
+  { href: "/meu-dia", label: "Meu Dia", icon: Sun },
   { href: "/financas", label: "Finanças", icon: DollarSign },
   { href: "/calendario", label: "Calendário", icon: Calendar },
 ];
