@@ -177,7 +177,7 @@ export default function MeuDiaPage() {
     <div className="min-h-screen bg-[#0f0f0f]">
       {/* Header */}
       <div className="border-b border-white/10 bg-[#161616]">
-        <div className="px-6 py-4 flex items-center gap-3">
+        <div className="px-3 md:px-6 py-4 flex items-center gap-3">
           <button onClick={() => setDate(d => addDays(d, -1))} className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
             <ChevronLeft size={16} />
           </button>
@@ -194,13 +194,13 @@ export default function MeuDiaPage() {
         </div>
       </div>
 
-      <div className="px-6 py-5 space-y-5">
+      <div className="px-3 md:px-6 py-4 md:py-5 space-y-4 md:space-y-5">
 
         {/* Top row: To-Do + Hábitos de hoje */}
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
 
           {/* === TO-DO === */}
-          <div className="flex flex-col bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden" style={{ minHeight: "200px", maxHeight: "340px" }}>
+          <div className="flex flex-col bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden" style={{ maxHeight: "340px" }}>
             <div className="px-5 py-3 border-b border-white/10 flex items-center justify-between flex-shrink-0">
               <div>
                 <h2 className="text-sm font-semibold text-white">To-Do</h2>
@@ -252,7 +252,7 @@ export default function MeuDiaPage() {
           </div>
 
           {/* === HÁBITOS DE HOJE === */}
-          <div className="flex flex-col bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden" style={{ minHeight: "200px", maxHeight: "340px" }}>
+          <div className="flex flex-col bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden" style={{ maxHeight: "340px" }}>
             <div className="px-5 py-3 border-b border-white/10 flex items-center justify-between flex-shrink-0">
               <h2 className="text-sm font-semibold text-white">Hábitos de hoje</h2>
               <button onClick={() => setShowHabitModal(true)} className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 px-2.5 py-1.5 rounded-lg transition-colors">
@@ -356,7 +356,7 @@ export default function MeuDiaPage() {
                   return (
                     <div key={habit.id} className="flex items-center gap-3 group">
                       <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: habit.color }} />
-                      <span className="text-xs text-gray-300 w-32 truncate">{habit.title}</span>
+                      <span className="text-xs text-gray-300 w-24 md:w-32 truncate">{habit.title}</span>
                       <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
                         <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: habit.color }} />
                       </div>

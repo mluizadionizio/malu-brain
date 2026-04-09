@@ -317,10 +317,10 @@ export default function FinancasPage() {
     <div className="min-h-screen bg-[#0f0f0f]">
       {/* Header */}
       <div className="border-b border-white/10 bg-[#161616]">
-        <div className="px-6 py-4 flex items-center justify-between">
+        <div className="px-3 md:px-6 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-white">Finanças</h1>
-            <p className="text-sm text-gray-400">Controle de entradas e saídas</p>
+            <h1 className="text-lg md:text-xl font-bold text-white">Finanças</h1>
+            <p className="text-xs md:text-sm text-gray-400">Controle de entradas e saídas</p>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={prevMonth} className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
@@ -336,24 +336,24 @@ export default function FinancasPage() {
         </div>
       </div>
 
-      <div className="px-6 py-6">
+      <div className="px-3 md:px-6 py-4 md:py-6">
         {/* Summary cards */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-3 md:p-4">
             <p className="text-gray-400 text-xs mb-1">Entradas</p>
-            <p className="text-xl font-bold text-green-400">R$ {fmt(totalEntrada)}</p>
+            <p className="text-base md:text-xl font-bold text-green-400">R$ {fmt(totalEntrada)}</p>
           </div>
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-4">
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-3 md:p-4">
             <p className="text-gray-400 text-xs mb-1">Saídas</p>
-            <p className="text-xl font-bold text-red-400">R$ {fmt(totalSaida)}</p>
+            <p className="text-base md:text-xl font-bold text-red-400">R$ {fmt(totalSaida)}</p>
           </div>
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-4">
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-3 md:p-4">
             <p className="text-gray-400 text-xs mb-1">Gastos Diários</p>
-            <p className="text-xl font-bold text-orange-400">R$ {fmt(totalDiario)}</p>
+            <p className="text-base md:text-xl font-bold text-orange-400">R$ {fmt(totalDiario)}</p>
           </div>
-          <div className={`bg-[#1a1a1a] border rounded-xl p-4 ${saldoFinal >= 0 ? "border-green-500/30" : "border-red-500/30"}`}>
+          <div className={`bg-[#1a1a1a] border rounded-xl p-3 md:p-4 col-span-2 md:col-span-1 ${saldoFinal >= 0 ? "border-green-500/30" : "border-red-500/30"}`}>
             <p className="text-gray-400 text-xs mb-1">Saldo Líquido</p>
-            <p className={`text-xl font-bold ${saldoFinal >= 0 ? "text-green-400" : "text-red-400"}`}>
+            <p className={`text-base md:text-xl font-bold ${saldoFinal >= 0 ? "text-green-400" : "text-red-400"}`}>
               R$ {fmtSaldo(saldoFinal)}
             </p>
           </div>
@@ -361,12 +361,14 @@ export default function FinancasPage() {
 
         {/* Table */}
         <div className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden">
-          <div className="grid grid-cols-[48px_1fr_1fr_1fr_1fr] border-b border-white/10 bg-[#161616]">
-            <div className="px-4 py-3 text-xs text-gray-500 font-medium">Dia</div>
-            <div className="px-2 py-3 text-xs text-gray-500 font-medium text-right">Entrada (R$)</div>
-            <div className="px-2 py-3 text-xs text-gray-500 font-medium text-right">Saída (R$) <span className="text-gray-600 font-normal">+ nota</span></div>
-            <div className="px-2 py-3 text-xs text-gray-500 font-medium text-right">Diário (R$) <span className="text-gray-600 font-normal">+ nota</span></div>
-            <div className="px-2 py-3 text-xs text-gray-500 font-medium text-right">Saldo Acumulado</div>
+          <div className="overflow-x-auto">
+          <div className="min-w-[480px]">
+          <div className="grid grid-cols-[44px_1fr_1fr_1fr_1fr] border-b border-white/10 bg-[#161616]">
+            <div className="px-3 py-3 text-xs text-gray-500 font-medium">Dia</div>
+            <div className="px-2 py-3 text-xs text-gray-500 font-medium text-right">Entrada</div>
+            <div className="px-2 py-3 text-xs text-gray-500 font-medium text-right">Saída <span className="text-gray-600 font-normal hidden sm:inline">+ nota</span></div>
+            <div className="px-2 py-3 text-xs text-gray-500 font-medium text-right">Diário <span className="text-gray-600 font-normal hidden sm:inline">+ nota</span></div>
+            <div className="px-2 py-3 text-xs text-gray-500 font-medium text-right">Saldo</div>
           </div>
 
           {loading ? (
@@ -390,9 +392,9 @@ export default function FinancasPage() {
                 return (
                   <div
                     key={row.day}
-                    className={`grid grid-cols-[48px_1fr_1fr_1fr_1fr] border-b border-white/5 hover:bg-white/[0.02] transition-colors ${isWeekend ? "bg-white/[0.01]" : ""}`}
+                    className={`grid grid-cols-[44px_1fr_1fr_1fr_1fr] border-b border-white/5 hover:bg-white/[0.02] transition-colors ${isWeekend ? "bg-white/[0.01]" : ""}`}
                   >
-                    <div className={`px-4 py-1.5 text-sm font-medium flex items-center ${isWeekend ? "text-gray-500" : "text-gray-400"}`}>
+                    <div className={`px-3 py-1.5 text-sm font-medium flex items-center ${isWeekend ? "text-gray-500" : "text-gray-400"}`}>
                       {row.day}
                     </div>
                     <EditableCell value={row.entrada} onChange={v => save(row.day, "entrada", v)} />
@@ -419,8 +421,8 @@ export default function FinancasPage() {
                 );
               })}
 
-              <div className="grid grid-cols-[48px_1fr_1fr_1fr_1fr] bg-[#161616] border-t border-white/10">
-                <div className="px-4 py-3 text-xs text-gray-500 font-medium">Total</div>
+              <div className="grid grid-cols-[44px_1fr_1fr_1fr_1fr] bg-[#161616] border-t border-white/10">
+                <div className="px-3 py-3 text-xs text-gray-500 font-medium">Total</div>
                 <div className="px-2 py-3 text-sm text-right font-semibold text-green-400">{fmt(totalEntrada)}</div>
                 <div className="px-2 py-3 text-sm text-right font-semibold text-red-400">{fmt(totalSaida)}</div>
                 <div className="px-2 py-3 text-sm text-right font-semibold text-orange-400">{fmt(totalDiario)}</div>
@@ -430,6 +432,8 @@ export default function FinancasPage() {
               </div>
             </div>
           )}
+          </div>
+          </div>
         </div>
       </div>
     </div>

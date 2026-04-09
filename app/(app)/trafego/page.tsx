@@ -452,49 +452,49 @@ export default function Home() {
       <style>{`@media print { body > * { display: none !important; } .print-report { display: block !important; position: fixed; top: 0; left: 0; width: 100%; white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #000; background: #fff; padding: 24px; } }`}</style>
       {/* Header */}
       <div className="border-b border-white/10 bg-[#161616]">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-white">Gestão de Clientes</h1>
-            <p className="text-sm text-gray-400">Tráfego Pago</p>
+        <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-base md:text-xl font-bold text-white">Gestão de Clientes</h1>
+            <p className="text-xs md:text-sm text-gray-400">Tráfego Pago</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={generateReport}
-              className="flex items-center gap-2 bg-white/10 hover:bg-white/15 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              className="flex items-center gap-1.5 bg-white/10 hover:bg-white/15 text-white px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors"
             >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-              Gerar Relatório
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <span className="hidden sm:inline">Gerar </span>Relatório
             </button>
             <button
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors"
             >
-              <Plus size={16} /> Novo Cliente
+              <Plus size={14} /> <span className="hidden sm:inline">Novo </span>Cliente
             </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-3 md:p-4">
             <p className="text-gray-400 text-xs mb-1">Total de Clientes</p>
-            <p className="text-2xl font-bold text-white">{clients.length}</p>
+            <p className="text-xl md:text-2xl font-bold text-white">{clients.length}</p>
           </div>
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-4">
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-3 md:p-4">
             <p className="text-gray-400 text-xs mb-1">Clientes Ativos</p>
-            <p className="text-2xl font-bold text-green-400">{totalAtivos}</p>
+            <p className="text-xl md:text-2xl font-bold text-green-400">{totalAtivos}</p>
           </div>
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-4">
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-3 md:p-4">
             <p className="text-gray-400 text-xs mb-1">Budget Total (ativos)</p>
-            <p className="text-2xl font-bold text-white">
+            <p className="text-xl md:text-2xl font-bold text-white">
               R$ {totalBudget.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}
             </p>
           </div>
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-4">
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-3 md:p-4">
             <p className="text-gray-400 text-xs mb-1">Diárias de hoje</p>
-            <p className="text-2xl font-bold text-white">{completedDailyTasks}<span className="text-sm text-gray-500">/{totalDailyTasks}</span></p>
+            <p className="text-xl md:text-2xl font-bold text-white">{completedDailyTasks}<span className="text-sm text-gray-500">/{totalDailyTasks}</span></p>
             <div className="mt-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
               <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${dailyProgress}%` }} />
             </div>
@@ -502,13 +502,13 @@ export default function Home() {
         </div>
 
         {/* Filters */}
-        <div className="flex gap-3 mb-5 flex-wrap">
+        <div className="flex gap-2 mb-4 flex-wrap">
           <input
             type="text"
             placeholder="Buscar cliente ou nicho..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 min-w-[200px] bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-blue-500"
+            className="flex-1 min-w-[140px] bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-blue-500"
           />
           <select
             value={filterStatus}
@@ -530,7 +530,9 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Header columns */}
+        {/* Header columns + list wrapped for horizontal scroll on mobile */}
+        <div className="overflow-x-auto -mx-3 md:mx-0 px-3 md:px-0">
+        <div className="min-w-[700px]">
         {filtered.length > 0 && (
           <div className="grid grid-cols-[20px_160px_90px_78px_96px_78px_1fr_1fr_130px_52px] gap-3 px-4 pb-1 text-xs text-gray-500 uppercase tracking-wide">
             <div />
@@ -980,6 +982,8 @@ export default function Home() {
             })}
           </div>
         )}
+        </div>{/* min-w */}
+        </div>{/* overflow-x-auto */}
       </div>
 
       {/* Report Modal */}

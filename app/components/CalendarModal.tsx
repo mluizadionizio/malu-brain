@@ -194,19 +194,19 @@ function MonthView({ year, month, events, todayYMD, onDayClick, onEventClick }: 
 }) {
   const cells = buildGrid(year, month);
   return (
-    <div className="flex-1 overflow-y-auto p-4">
+    <div className="flex-1 overflow-y-auto p-2 md:p-4">
       <div className="grid grid-cols-7 mb-1">
-        {DAYS_PT.map(d => <div key={d} className="text-center text-xs text-gray-500 uppercase tracking-wider py-1.5">{d}</div>)}
+        {DAYS_PT.map(d => <div key={d} className="text-center text-[10px] md:text-xs text-gray-500 uppercase tracking-wider py-1">{d}</div>)}
       </div>
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-0.5 md:gap-1">
         {cells.map((day, idx) => {
-          if (day === null) return <div key={`e-${idx}`} className="h-24 rounded-xl bg-[#111]" />;
+          if (day === null) return <div key={`e-${idx}`} className="h-14 md:h-24 rounded-lg md:rounded-xl bg-[#111]" />;
           const ymd = toYMD(year, month, day);
           const dayEvents = events[ymd] || [];
           const isToday = ymd === todayYMD;
           return (
             <div key={ymd} onClick={() => onDayClick(ymd)}
-              className={`h-24 rounded-xl border p-1.5 cursor-pointer flex flex-col transition-colors group
+              className={`h-14 md:h-24 rounded-lg md:rounded-xl border p-1 md:p-1.5 cursor-pointer flex flex-col transition-colors group
                 ${isToday ? "border-blue-500/50 bg-blue-500/5 hover:bg-blue-500/10" : "border-white/[0.06] bg-[#1a1a1a] hover:border-white/20 hover:bg-[#1f1f1f]"}`}>
               <div className="flex items-center justify-between mb-1">
                 <span className={`text-xs font-semibold ${isToday ? "text-blue-400" : "text-gray-400"}`}>{day}</span>
@@ -235,8 +235,8 @@ function DayView({ dates, events, todayYMD, onAddClick, onEventClick }: {
   onEventClick: (ev: CalendarEvent) => void;
 }) {
   return (
-    <div className="flex-1 overflow-y-auto p-4">
-      <div className={`grid gap-3 h-full`} style={{ gridTemplateColumns: `repeat(${dates.length}, 1fr)` }}>
+    <div className="flex-1 overflow-y-auto p-2 md:p-4">
+      <div className={`grid gap-2 md:gap-3 h-full`} style={{ gridTemplateColumns: `repeat(${dates.length}, 1fr)` }}>
         {dates.map(ymd => {
           const [y, m, d] = ymd.split("-").map(Number);
           const dow = new Date(y, m - 1, d).getDay();
@@ -372,26 +372,25 @@ export default function CalendarModal({ onClose, clients, mode = "modal" }: {
   const inner = (
     <div className={`bg-[#161616] border border-white/10 rounded-2xl flex flex-col shadow-2xl ${mode === "page" ? "w-full h-full" : "w-full max-w-5xl max-h-[90vh]"}`}>
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <button onClick={prevPeriod} className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"><ChevronLeft size={16} /></button>
-          <span className="text-sm font-semibold text-white min-w-[180px] text-center">{periodLabel()}</span>
-          <button onClick={nextPeriod} className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"><ChevronRight size={16} /></button>
+      <div className="flex items-center justify-between px-3 md:px-6 py-3 md:py-4 border-b border-white/10 flex-shrink-0 gap-2">
+        <div className="flex items-center gap-1.5 md:gap-3 min-w-0">
+          <button onClick={prevPeriod} className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors flex-shrink-0"><ChevronLeft size={16} /></button>
+          <span className="text-xs md:text-sm font-semibold text-white min-w-[120px] md:min-w-[180px] text-center truncate">{periodLabel()}</span>
+          <button onClick={nextPeriod} className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors flex-shrink-0"><ChevronRight size={16} /></button>
           <button onClick={() => { setFocusDate(todayYMD); setYear(today.getFullYear()); setMonth(today.getMonth()); }}
-            className="text-xs text-gray-500 hover:text-white px-2 py-1 rounded-lg hover:bg-white/5 transition-colors">Hoje</button>
+            className="text-xs text-gray-500 hover:text-white px-2 py-1 rounded-lg hover:bg-white/5 transition-colors flex-shrink-0">Hoje</button>
         </div>
-        <div className="flex items-center gap-2">
-          {/* View mode selector */}
+        <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
           <div className="flex bg-white/5 rounded-lg p-0.5 gap-0.5">
             {(["month","3day","day"] as ViewMode[]).map(v => (
               <button key={v} onClick={() => { setViewMode(v); if (v !== "month") setFocusDate(todayYMD); }}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${viewMode === v ? "bg-white/15 text-white" : "text-gray-400 hover:text-white"}`}>
-                {v === "month" ? "Mês" : v === "3day" ? "3 dias" : "Dia"}
+                className={`px-2 md:px-3 py-1 rounded-md text-xs font-medium transition-colors ${viewMode === v ? "bg-white/15 text-white" : "text-gray-400 hover:text-white"}`}>
+                {v === "month" ? "Mês" : v === "3day" ? "3d" : "Dia"}
               </button>
             ))}
           </div>
           {mode === "modal" && (
-            <button onClick={onClose} className="ml-1 p-1.5 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"><X size={18} /></button>
+            <button onClick={onClose} className="p-1.5 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"><X size={18} /></button>
           )}
         </div>
       </div>
