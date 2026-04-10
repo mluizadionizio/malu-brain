@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText, X, Check } from "lucide-react";
 
 const MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
@@ -243,6 +243,8 @@ export default function FinancasPage() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
   const [carryover, setCarryover] = useState(0);
+  const [selectedDays, setSelectedDays] = useState<Set<number>>(new Set());
+  const [bulkModal, setBulkModal] = useState<{ field: "entrada" | "saida" | "diario"; value: string } | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -290,6 +292,25 @@ export default function FinancasPage() {
     });
   }
 
+  // Bulk fill helpers
+  function toggleDay(day: number) {
+    setSelectedDays(prev => {
+      const next = new Set(prev);
+      if (next.has(day)) next.delete(day); else next.add(day);
+      return next;
+    });
+  }
+  function selectAll() { setSelectedDays(new Set(totalDays)); }
+  function clearSelection() { setSelectedDays(new Set()); }
+
+  async function applyBulk() {
+    if (!bulkModal) return;
+    const v = evalExpr(bulkModal.value);
+    await Promise.all([...selectedDays].map(day => save(day, bulkModal.field, v)));
+    setBulkModal(null);
+    clearSelection();
+  }
+
   // Compute running saldo
   let runningBalance = carryover;
   const rows = totalDays.map(day => {
@@ -305,10 +326,12 @@ export default function FinancasPage() {
   const maxSaldo = Math.max(...rows.map(r => r.saldo), carryover);
 
   function prevMonth() {
+    clearSelection();
     if (month === 1) { setMonth(12); setYear(y => y - 1); }
     else setMonth(m => m - 1);
   }
   function nextMonth() {
+    clearSelection();
     if (month === 12) { setMonth(1); setYear(y => y + 1); }
     else setMonth(m => m + 1);
   }
@@ -359,11 +382,36 @@ export default function FinancasPage() {
           </div>
         </div>
 
+        {/* Bulk action bar */}
+        {selectedDays.size > 0 && (
+          <div className="mb-3 flex items-center gap-2 bg-[#1a1a1a] border border-blue-500/30 rounded-xl px-4 py-2.5 flex-wrap">
+            <span className="text-xs text-blue-400 font-medium">{selectedDays.size} dia{selectedDays.size !== 1 ? "s" : ""} selecionado{selectedDays.size !== 1 ? "s" : ""}</span>
+            <span className="text-gray-700">·</span>
+            <span className="text-xs text-gray-500">Preencher:</span>
+            {(["entrada", "saida", "diario"] as const).map(f => (
+              <button key={f} onClick={() => setBulkModal({ field: f, value: "" })}
+                className="text-xs px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors capitalize">
+                {f === "entrada" ? "Entrada" : f === "saida" ? "Saída" : "Diário"}
+              </button>
+            ))}
+            <div className="flex-1" />
+            <button onClick={clearSelection} className="text-xs text-gray-600 hover:text-gray-400 transition-colors">Limpar seleção</button>
+          </div>
+        )}
+
         {/* Table */}
         <div className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
-          <div className="min-w-[480px]">
-          <div className="grid grid-cols-[44px_1fr_1fr_1fr_1fr] border-b border-white/10 bg-[#161616]">
+          <div className="min-w-[510px]">
+          <div className="grid grid-cols-[28px_44px_1fr_1fr_1fr_1fr] border-b border-white/10 bg-[#161616]">
+            <div className="px-1 py-3 flex items-center justify-center">
+              <button
+                onClick={() => selectedDays.size === days ? clearSelection() : selectAll()}
+                className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${selectedDays.size === days ? "bg-blue-600 border-blue-600" : "border-white/20 hover:border-white/40"}`}
+              >
+                {selectedDays.size === days && <Check size={10} className="text-white" />}
+              </button>
+            </div>
             <div className="px-3 py-3 text-xs text-gray-500 font-medium">Dia</div>
             <div className="px-2 py-3 text-xs text-gray-500 font-medium text-right">Entrada</div>
             <div className="px-2 py-3 text-xs text-gray-500 font-medium text-right">Saída <span className="text-gray-600 font-normal hidden sm:inline">+ nota</span></div>
@@ -376,8 +424,8 @@ export default function FinancasPage() {
           ) : (
             <div>
               {carryover !== 0 && (
-                <div className="grid grid-cols-[48px_1fr_1fr_1fr_1fr] border-b border-white/5 bg-white/[0.02]">
-                  <div className="px-4 py-2 text-xs text-gray-600 font-medium flex items-center col-span-4">
+                <div className="grid grid-cols-[28px_44px_1fr_1fr_1fr_1fr] border-b border-white/5 bg-white/[0.02]">
+                  <div className="col-span-5 px-4 py-2 text-xs text-gray-600 font-medium flex items-center">
                     Saldo anterior
                   </div>
                   <div className={`px-2 py-2 text-sm text-right font-semibold ${carryover >= 0 ? "text-gray-400" : "text-red-400"}`}>
@@ -389,11 +437,20 @@ export default function FinancasPage() {
                 const isWeekend = [0, 6].includes(new Date(year, month - 1, row.day).getDay());
                 const hasData = row.entrada !== 0 || row.saida !== 0 || row.diario !== 0;
                 const saldoClass = hasData ? saldoColor(row.saldo, maxSaldo) : "text-gray-600/60";
+                const isSelected = selectedDays.has(row.day);
                 return (
                   <div
                     key={row.day}
-                    className={`grid grid-cols-[44px_1fr_1fr_1fr_1fr] border-b border-white/5 hover:bg-white/[0.02] transition-colors ${isWeekend ? "bg-white/[0.01]" : ""}`}
+                    className={`grid grid-cols-[28px_44px_1fr_1fr_1fr_1fr] border-b border-white/5 hover:bg-white/[0.02] transition-colors ${isWeekend ? "bg-white/[0.01]" : ""} ${isSelected ? "bg-blue-500/5" : ""}`}
                   >
+                    <div className="px-1 py-1.5 flex items-center justify-center">
+                      <button
+                        onClick={() => toggleDay(row.day)}
+                        className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${isSelected ? "bg-blue-600 border-blue-600" : "border-white/15 hover:border-white/30"}`}
+                      >
+                        {isSelected && <Check size={10} className="text-white" />}
+                      </button>
+                    </div>
                     <div className={`px-3 py-1.5 text-sm font-medium flex items-center ${isWeekend ? "text-gray-500" : "text-gray-400"}`}>
                       {row.day}
                     </div>
@@ -421,7 +478,8 @@ export default function FinancasPage() {
                 );
               })}
 
-              <div className="grid grid-cols-[44px_1fr_1fr_1fr_1fr] bg-[#161616] border-t border-white/10">
+              <div className="grid grid-cols-[28px_44px_1fr_1fr_1fr_1fr] bg-[#161616] border-t border-white/10">
+                <div />
                 <div className="px-3 py-3 text-xs text-gray-500 font-medium">Total</div>
                 <div className="px-2 py-3 text-sm text-right font-semibold text-green-400">{fmt(totalEntrada)}</div>
                 <div className="px-2 py-3 text-sm text-right font-semibold text-red-400">{fmt(totalSaida)}</div>
@@ -436,6 +494,39 @@ export default function FinancasPage() {
           </div>
         </div>
       </div>
+
+      {/* Bulk fill modal */}
+      {bulkModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl w-full max-w-xs shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+              <p className="text-white font-semibold">
+                Preencher {bulkModal.field === "entrada" ? "Entrada" : bulkModal.field === "saida" ? "Saída" : "Diário"}
+              </p>
+              <button onClick={() => setBulkModal(null)} className="text-gray-400 hover:text-white"><X size={18} /></button>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              <p className="text-xs text-gray-500">{selectedDays.size} dia{selectedDays.size !== 1 ? "s" : ""} selecionado{selectedDays.size !== 1 ? "s" : ""}</p>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Valor (aceita expressões: ex: 50+30)</label>
+                <input
+                  autoFocus
+                  type="text"
+                  value={bulkModal.value}
+                  onChange={e => setBulkModal(m => m ? { ...m, value: e.target.value } : m)}
+                  onKeyDown={e => e.key === "Enter" && applyBulk()}
+                  placeholder="ex: 50 ou 20+30"
+                  className="w-full bg-[#252525] border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-blue-500 font-mono"
+                />
+              </div>
+              <div className="flex gap-2 pt-1">
+                <button onClick={() => setBulkModal(null)} className="flex-1 px-4 py-2 text-sm text-gray-400 bg-white/5 hover:bg-white/10 rounded-lg transition-colors">Cancelar</button>
+                <button onClick={applyBulk} disabled={!bulkModal.value.trim()} className="flex-1 px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg transition-colors">Aplicar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

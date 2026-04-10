@@ -31,6 +31,13 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         args: [id],
       });
     }
+
+    // Sync to linked todo for today
+    const today = nowBrasilia().slice(0, 10);
+    await db.execute({
+      sql: 'UPDATE todos SET completed = ? WHERE task_id = ? AND date = ?',
+      args: [completing ? 1 : 0, id, today],
+    });
   } else {
     const { title, type } = body;
     await db.execute({

@@ -3,9 +3,10 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { TrendingUp, DollarSign, Calendar, Sun, BookOpen } from "lucide-react";
+import { TrendingUp, DollarSign, Calendar, Sun, BookOpen, LayoutDashboard } from "lucide-react";
 
 const NAV = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/trafego", label: "Tráfego", icon: TrendingUp },
   { href: "/meu-dia", label: "Meu Dia", icon: Sun },
   { href: "/estudos", label: "Estudos", icon: BookOpen },

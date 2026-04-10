@@ -22,7 +22,7 @@ function formatDate(ymd: string) {
   return `${DAYS_FULL[dow]}, ${d} ${MONTHS_PT[m - 1]} ${y}`;
 }
 
-type Todo = { id: number; title: string; date: string; completed: number };
+type Todo = { id: number; title: string; date: string; completed: number; client_name?: string };
 type HabitDay = { id: number; title: string; color: string; completed_today: number; streak: number; last_30: { date: string; completed: number }[] };
 type MonthData = { habits: { id: number; title: string; color: string }[]; logMap: Record<string, Record<string, number>>; daysInMonth: number; year: number; month: number };
 
@@ -227,6 +227,11 @@ export default function MeuDiaPage() {
                   <span className={`flex-1 text-sm transition-all ${todo.completed ? "line-through text-gray-600" : "text-gray-200"}`}>
                     {todo.title}
                   </span>
+                  {todo.client_name && (
+                    <span className="text-[10px] text-blue-400/70 bg-blue-500/10 px-1.5 py-0.5 rounded flex-shrink-0">
+                      {todo.client_name}
+                    </span>
+                  )}
                   <button onClick={() => deleteTodo(todo.id)} className="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-400 transition-all">
                     <Trash2 size={13} />
                   </button>

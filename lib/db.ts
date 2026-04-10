@@ -125,6 +125,7 @@ export async function initDb() {
     'ALTER TABLE finance_entries ADD COLUMN saida_desc TEXT',
     'ALTER TABLE finance_entries ADD COLUMN diario_desc TEXT',
     'ALTER TABLE study_topics ADD COLUMN total_modules INTEGER',
+    'ALTER TABLE todos ADD COLUMN task_id INTEGER',
   ];
   for (const sql of migrations) {
     try { await db.execute({ sql, args: [] }); } catch {}
