@@ -22,7 +22,8 @@ export async function GET() {
         ORDER BY t.created_at ASC) AS daily_tasks_json,
         (SELECT json_group_array(json_object(
           'id', t.id,
-          'title', t.title
+          'title', t.title,
+          'stage', COALESCE(t.stage, 'a_fazer')
         ))
         FROM tasks t
         WHERE t.client_id = c.id AND t.type = 'prioritaria' AND t.archived = 0

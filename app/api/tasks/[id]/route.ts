@@ -38,12 +38,24 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       sql: 'UPDATE todos SET completed = ? WHERE task_id = ? AND date = ?',
       args: [completing ? 1 : 0, id, today],
     });
-  } else {
-    const { title, type } = body;
+  } else if (Object.prototype.hasOwnProperty.call(body, 'stage')) {
     await db.execute({
-      sql: 'UPDATE tasks SET title = ?, type = ? WHERE id = ?',
-      args: [title, type, id],
+      sql: 'UPDATE tasks SET stage = ? WHERE id = ?',
+      args: [body.stage, id],
     });
+  } else {
+    const { title, type, client_id } = body;
+    if (client_id) {
+      await db.execute({
+        sql: 'UPDATE tasks SET title = ?, type = ?, client_id = ? WHERE id = ?',
+        args: [title, type, client_id, id],
+      });
+    } else {
+      await db.execute({
+        sql: 'UPDATE tasks SET title = ?, type = ? WHERE id = ?',
+        args: [title, type, id],
+      });
+    }
   }
 
   const result = await db.execute({ sql: 'SELECT * FROM tasks WHERE id = ?', args: [id] });

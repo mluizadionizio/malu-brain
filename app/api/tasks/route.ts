@@ -28,11 +28,11 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   await initDb();
   const body = await req.json();
-  const { client_id, title, type } = body;
+  const { client_id, title, type, stage } = body;
 
   const result = await db.execute({
-    sql: `INSERT INTO tasks (client_id, title, type) VALUES (?, ?, ?)`,
-    args: [client_id, title, type || 'diaria'],
+    sql: `INSERT INTO tasks (client_id, title, type, stage) VALUES (?, ?, ?, ?)`,
+    args: [client_id, title, type || 'diaria', stage || 'a_fazer'],
   });
 
   const taskId = result.lastInsertRowid!;

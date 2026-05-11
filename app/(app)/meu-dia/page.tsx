@@ -176,13 +176,13 @@ export default function MeuDiaPage() {
   return (
     <div className="min-h-screen bg-[#0f0f0f]">
       {/* Header */}
-      <div className="border-b border-white/10 bg-[#161616]">
+      <div className="border-b border-white/[0.08] bg-[#0c0c14]">
         <div className="px-3 md:px-6 py-4 flex items-center gap-3">
           <button onClick={() => setDate(d => addDays(d, -1))} className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
             <ChevronLeft size={16} />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-white">{isToday ? "Meu Dia" : formatDate(date)}</h1>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">{isToday ? "Meu Dia" : formatDate(date)}</h1>
             <p className="text-sm text-gray-400">{isToday ? formatDate(date) : ""}</p>
           </div>
           <button onClick={() => setDate(d => addDays(d, 1))} className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
@@ -200,7 +200,7 @@ export default function MeuDiaPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
 
           {/* === TO-DO === */}
-          <div className="flex flex-col bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden" style={{ maxHeight: "340px" }}>
+          <div className="flex flex-col bg-[#111118] border border-white/[0.08] rounded-xl overflow-hidden" style={{ maxHeight: "340px" }}>
             <div className="px-5 py-3 border-b border-white/10 flex items-center justify-between flex-shrink-0">
               <div>
                 <h2 className="text-sm font-semibold text-white">To-Do</h2>
@@ -257,7 +257,7 @@ export default function MeuDiaPage() {
           </div>
 
           {/* === HÁBITOS DE HOJE === */}
-          <div className="flex flex-col bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden" style={{ maxHeight: "340px" }}>
+          <div className="flex flex-col bg-[#111118] border border-white/[0.08] rounded-xl overflow-hidden" style={{ maxHeight: "340px" }}>
             <div className="px-5 py-3 border-b border-white/10 flex items-center justify-between flex-shrink-0">
               <h2 className="text-sm font-semibold text-white">Hábitos de hoje</h2>
               <button onClick={() => setShowHabitModal(true)} className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 px-2.5 py-1.5 rounded-lg transition-colors">
@@ -302,7 +302,7 @@ export default function MeuDiaPage() {
         </div>
 
         {/* === CALENDÁRIO DO MÊS (unified) === */}
-        <div className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden">
+        <div className="bg-[#111118] border border-white/[0.08] rounded-xl overflow-hidden">
           <div className="px-5 py-3 border-b border-white/10 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-white">Visão do mês</h2>
             <div className="flex items-center gap-2">
@@ -384,7 +384,7 @@ export default function MeuDiaPage() {
       {/* Add Habit Modal */}
       {showHabitModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl w-full max-w-sm shadow-2xl">
+          <div className="bg-[#0c0c14] border border-white/[0.08] rounded-2xl w-full max-w-sm shadow-2xl">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <p className="text-white font-semibold">Novo Hábito</p>
               <button onClick={() => setShowHabitModal(false)} className="text-gray-400 hover:text-white"><X size={18} /></button>
@@ -410,7 +410,7 @@ export default function MeuDiaPage() {
               </div>
               <div className="flex gap-2 pt-1">
                 <button onClick={() => setShowHabitModal(false)} className="flex-1 px-4 py-2 text-sm text-gray-400 bg-white/5 hover:bg-white/10 rounded-lg transition-colors">Cancelar</button>
-                <button onClick={addHabit} disabled={!habitForm.title.trim()} className="flex-1 px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg transition-colors">Criar</button>
+                <button onClick={addHabit} disabled={!habitForm.title.trim()} className="flex-1 px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-sm shadow-blue-500/30 disabled:opacity-50 text-white rounded-lg transition-colors">Criar</button>
               </div>
             </div>
           </div>
@@ -420,7 +420,7 @@ export default function MeuDiaPage() {
       {/* Edit Habit Modal */}
       {editingHabit && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl w-full max-w-sm shadow-2xl">
+          <div className="bg-[#0c0c14] border border-white/[0.08] rounded-2xl w-full max-w-sm shadow-2xl">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <p className="text-white font-semibold">Editar Hábito</p>
               <button onClick={() => setEditingHabit(null)} className="text-gray-400 hover:text-white"><X size={18} /></button>
@@ -452,7 +452,7 @@ export default function MeuDiaPage() {
                 </button>
                 <div className="flex-1" />
                 <button onClick={() => setEditingHabit(null)} className="px-4 py-2 text-sm text-gray-400 bg-white/5 hover:bg-white/10 rounded-lg transition-colors">Cancelar</button>
-                <button onClick={saveEditHabit} disabled={!editingHabit.title.trim()} className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg transition-colors">Salvar</button>
+                <button onClick={saveEditHabit} disabled={!editingHabit.title.trim()} className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-sm shadow-blue-500/30 disabled:opacity-50 text-white rounded-lg transition-colors">Salvar</button>
               </div>
             </div>
           </div>

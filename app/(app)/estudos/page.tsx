@@ -181,15 +181,15 @@ export default function EstudosPage() {
   return (
     <div className="min-h-screen bg-[#0f0f0f]">
       {/* Header */}
-      <div className="border-b border-white/10 bg-[#161616]">
+      <div className="border-b border-white/[0.08] bg-[#0c0c14]">
         <div className="px-3 md:px-6 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-white">Estudos</h1>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Estudos</h1>
             <p className="text-sm text-gray-400">{formatDayLabel(todayYMD)}</p>
           </div>
           <button
             onClick={() => setShowCourseModal(true)}
-            className="flex items-center gap-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-sm shadow-blue-500/30 px-3 py-2 rounded-lg transition-colors"
           >
             <Plus size={14} /> Curso
           </button>
@@ -202,7 +202,7 @@ export default function EstudosPage() {
         <div className="grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-4 md:gap-5">
 
           {/* Calendário */}
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden">
+          <div className="bg-[#111118] border border-white/[0.08] rounded-xl overflow-hidden">
             <div className="px-5 py-3 border-b border-white/10 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-white">Calendário</h2>
               <div className="flex items-center gap-2">
@@ -262,7 +262,7 @@ export default function EstudosPage() {
           </div>
 
           {/* Painel do dia */}
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden flex flex-col">
+          <div className="bg-[#111118] border border-white/[0.08] rounded-xl overflow-hidden flex flex-col">
             <div className="px-5 py-3 border-b border-white/10 flex items-center justify-between flex-shrink-0">
               <div>
                 <h2 className="text-sm font-semibold text-white">{formatDayLabel(selectedDate)}</h2>
@@ -330,7 +330,7 @@ export default function EstudosPage() {
         </div>
 
         {/* Cursos */}
-        <div className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden">
+        <div className="bg-[#111118] border border-white/[0.08] rounded-xl overflow-hidden">
           <div className="px-5 py-3 border-b border-white/10 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-white">Cursos</h2>
             <span className="text-xs text-gray-600">{courses.length} curso{courses.length !== 1 ? "s" : ""}</span>
@@ -372,7 +372,7 @@ export default function EstudosPage() {
       {/* Modal: Novo Curso */}
       {showCourseModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl w-full max-w-sm shadow-2xl">
+          <div className="bg-[#0c0c14] border border-white/[0.08] rounded-2xl w-full max-w-sm shadow-2xl">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <p className="text-white font-semibold">Novo Curso</p>
               <button onClick={() => setShowCourseModal(false)} className="text-gray-400 hover:text-white"><X size={18} /></button>
@@ -406,7 +406,7 @@ export default function EstudosPage() {
               </div>
               <div className="flex gap-2 pt-1">
                 <button onClick={() => setShowCourseModal(false)} className="flex-1 px-4 py-2 text-sm text-gray-400 bg-white/5 hover:bg-white/10 rounded-lg transition-colors">Cancelar</button>
-                <button onClick={createCourse} disabled={!courseForm.title.trim()} className="flex-1 px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg transition-colors">Criar</button>
+                <button onClick={createCourse} disabled={!courseForm.title.trim()} className="flex-1 px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-sm shadow-blue-500/30 disabled:opacity-50 text-white rounded-lg transition-colors">Criar</button>
               </div>
             </div>
           </div>
@@ -416,7 +416,7 @@ export default function EstudosPage() {
       {/* Modal: Editar Curso */}
       {editingCourse && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl w-full max-w-sm shadow-2xl">
+          <div className="bg-[#0c0c14] border border-white/[0.08] rounded-2xl w-full max-w-sm shadow-2xl">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <p className="text-white font-semibold">Editar Curso</p>
               <button onClick={() => setEditingCourse(null)} className="text-gray-400 hover:text-white"><X size={18} /></button>
@@ -453,7 +453,7 @@ export default function EstudosPage() {
                 </button>
                 <div className="flex-1" />
                 <button onClick={() => setEditingCourse(null)} className="px-4 py-2 text-sm text-gray-400 bg-white/5 hover:bg-white/10 rounded-lg transition-colors">Cancelar</button>
-                <button onClick={saveEditCourse} disabled={!editingCourse.title.trim()} className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg transition-colors">Salvar</button>
+                <button onClick={saveEditCourse} disabled={!editingCourse.title.trim()} className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-sm shadow-blue-500/30 disabled:opacity-50 text-white rounded-lg transition-colors">Salvar</button>
               </div>
             </div>
           </div>
@@ -463,7 +463,7 @@ export default function EstudosPage() {
       {/* Modal: Nova Sessão */}
       {showSessionModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl w-full max-w-sm shadow-2xl">
+          <div className="bg-[#0c0c14] border border-white/[0.08] rounded-2xl w-full max-w-sm shadow-2xl">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <p className="text-white font-semibold">Sessão — {formatDayLabel(selectedDate)}</p>
               <button onClick={() => setShowSessionModal(false)} className="text-gray-400 hover:text-white"><X size={18} /></button>
@@ -513,7 +513,7 @@ export default function EstudosPage() {
               </div>
               <div className="flex gap-2 pt-1">
                 <button onClick={() => setShowSessionModal(false)} className="flex-1 px-4 py-2 text-sm text-gray-400 bg-white/5 hover:bg-white/10 rounded-lg transition-colors">Cancelar</button>
-                <button onClick={createSession} disabled={!sessionForm.course_id} className="flex-1 px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg transition-colors">Salvar</button>
+                <button onClick={createSession} disabled={!sessionForm.course_id} className="flex-1 px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-sm shadow-blue-500/30 disabled:opacity-50 text-white rounded-lg transition-colors">Salvar</button>
               </div>
             </div>
           </div>

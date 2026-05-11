@@ -27,9 +27,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen bg-[#0f0f0f]">
       {/* Sidebar — desktop only */}
-      <aside className="hidden md:flex w-56 flex-shrink-0 bg-[#161616] border-r border-white/10 flex-col">
-        <div className="px-5 py-5 border-b border-white/10">
-          <span className="text-white font-bold text-base tracking-tight">malu brain</span>
+      <aside className="hidden md:flex w-56 flex-shrink-0 bg-[#0c0c14] border-r border-white/[0.08] flex-col">
+        <div className="px-5 py-5 border-b border-white/[0.08]">
+          <span className="bg-gradient-to-r from-blue-300 to-blue-500 bg-clip-text text-transparent font-bold text-base tracking-tight">malu brain</span>
         </div>
         <nav className="flex flex-col gap-1 p-3 flex-1">
           {NAV.map(({ href, label, icon: Icon }) => {
@@ -38,11 +38,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Link
                 key={href}
                 href={href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  active ? "bg-white/10 text-white" : "text-gray-400 hover:text-white hover:bg-white/5"
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                  active
+                    ? "bg-gradient-to-r from-blue-500/15 to-transparent border-l-2 border-blue-500 text-white pl-[10px]"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
                 }`}
               >
-                <Icon size={16} />
+                <Icon size={16} className={active ? "text-blue-400" : ""} />
                 {label === "Tráfego" ? "Tráfego Pago" : label}
               </Link>
             );
@@ -64,7 +66,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* Bottom nav — mobile only */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#161616] border-t border-white/10 flex z-50 safe-area-inset-bottom">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0c0c14] border-t border-white/[0.08] flex z-50 safe-area-inset-bottom">
         {NAV.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (
@@ -72,7 +74,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               key={href}
               href={href}
               className={`flex-1 flex flex-col items-center justify-center py-3 gap-0.5 transition-colors ${
-                active ? "text-white" : "text-gray-500"
+                active ? "text-blue-400" : "text-gray-500"
               }`}
             >
               <Icon size={22} />

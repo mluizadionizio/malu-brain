@@ -3,13 +3,14 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import CalendarModal from "../../components/CalendarModal";
+import WeeklyCalendarWidget from "@/app/components/WeeklyCalendarWidget";
 import {
   Plus, ExternalLink, Trash2, X, Check,
   ChevronDown, ChevronUp, Pencil, Send,
 } from "lucide-react";
 
 type DailyTask = { id: number; title: string; completed: number };
-type PriorityTask = { id: number; title: string };
+type PriorityTask = { id: number; title: string; stage?: string };
 
 type Client = {
   id: number;
@@ -40,6 +41,19 @@ function commentAgeDays(dateStr: string | null): number | null {
   if (!dateStr) return null;
   return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
 }
+
+const KANBAN_STAGES = [
+  { id: "a_fazer", label: "A fazer", textColor: "text-gray-300", bg: "bg-white/[0.03]", countBg: "bg-white/[0.08]", borderColor: "border-white/[0.07]" },
+  { id: "em_andamento", label: "Em andamento", textColor: "text-blue-300", bg: "bg-blue-500/[0.05]", countBg: "bg-blue-500/20", borderColor: "border-blue-500/20" },
+  { id: "concluido", label: "Concluído", textColor: "text-green-300", bg: "bg-green-500/[0.05]", countBg: "bg-green-500/20", borderColor: "border-green-500/20" },
+] as const;
+
+const STATUS_DOT: Record<string, string> = {
+  ativo: "bg-green-500",
+  pausado: "bg-yellow-500",
+  churn: "bg-red-500",
+  arquivado: "bg-gray-500",
+};
 
 const STATUS_COLORS: Record<string, string> = {
   ativo: "bg-green-500/20 text-green-400 border border-green-500/30",
@@ -171,6 +185,11 @@ export default function Home() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [filterPending, setFilterPending] = useState(false);
   const [todayEventsCount, setTodayEventsCount] = useState(0);
+  const [addingInStage, setAddingInStage] = useState<string | null>(null);
+  const [inlineForm, setInlineForm] = useState({ client_id: "", title: "" });
+  const [editingCardId, setEditingCardId] = useState<number | null>(null);
+  const [editCardTitle, setEditCardTitle] = useState("");
+  const [expandedStages, setExpandedStages] = useState<Set<string>>(new Set());
 
   useEffect(() => { fetchClients(); }, []);
 
@@ -186,6 +205,64 @@ export default function Home() {
   async function fetchClients() {
     const res = await fetch("/api/clients");
     setClients(await res.json());
+  }
+
+  async function updateTaskStage(taskId: number, newStage: string) {
+    setClients(prev => prev.map(c => ({
+      ...c,
+      priority_tasks: c.priority_tasks.map(t =>
+        t.id === taskId ? { ...t, stage: newStage } : t
+      ),
+    })));
+    await fetch(`/api/tasks/${taskId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ stage: newStage }),
+    });
+  }
+
+  async function addCardInline() {
+    if (!inlineForm.client_id || !inlineForm.title.trim() || !addingInStage) return;
+    const res = await fetch("/api/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        client_id: Number(inlineForm.client_id),
+        title: inlineForm.title.trim(),
+        type: "prioritaria",
+        stage: addingInStage,
+      }),
+    });
+    if (res.ok) {
+      setAddingInStage(null);
+      setInlineForm({ client_id: "", title: "" });
+      fetchClients();
+    }
+  }
+
+  async function deleteKanbanCard(taskId: number) {
+    setClients(prev => prev.map(c => ({
+      ...c,
+      priority_tasks: c.priority_tasks.filter(t => t.id !== taskId),
+    })));
+    await fetch(`/api/tasks/${taskId}`, { method: "DELETE" });
+  }
+
+  async function saveEditCard() {
+    if (!editingCardId || !editCardTitle.trim()) return;
+    const title = editCardTitle.trim();
+    setClients(prev => prev.map(c => ({
+      ...c,
+      priority_tasks: c.priority_tasks.map(t =>
+        t.id === editingCardId ? { ...t, title } : t
+      ),
+    })));
+    setEditingCardId(null);
+    await fetch(`/api/tasks/${editingCardId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, type: "prioritaria" }),
+    });
   }
 
   async function fetchTasks(clientId: number) {
@@ -447,14 +524,25 @@ export default function Home() {
   const completedDailyTasks = clients.reduce((s, c) => s + c.daily_tasks.filter(t => t.completed).length, 0);
   const dailyProgress = totalDailyTasks > 0 ? Math.round((completedDailyTasks / totalDailyTasks) * 100) : 0;
 
+  const allKanbanTasks = clients.flatMap(c =>
+    (c.priority_tasks || []).map(t => ({
+      id: t.id,
+      title: t.title,
+      stage: t.stage || "a_fazer",
+      client_id: c.id,
+      client_name: c.name,
+      client_status: c.status,
+    }))
+  );
+
   return (
     <div className="min-h-screen bg-[#0f0f0f]">
       <style>{`@media print { body > * { display: none !important; } .print-report { display: block !important; position: fixed; top: 0; left: 0; width: 100%; white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #000; background: #fff; padding: 24px; } }`}</style>
       {/* Header */}
-      <div className="border-b border-white/10 bg-[#161616]">
+      <div className="border-b border-white/[0.08] bg-[#0c0c14]">
         <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-base md:text-xl font-bold text-white">Gestão de Clientes</h1>
+            <h1 className="text-base md:text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Gestão de Clientes</h1>
             <p className="text-xs md:text-sm text-gray-400">Tráfego Pago</p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -467,7 +555,7 @@ export default function Home() {
             </button>
             <button
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors"
+              className="flex items-center gap-1.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-sm shadow-blue-500/30 text-white px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors"
             >
               <Plus size={14} /> <span className="hidden sm:inline">Novo </span>Cliente
             </button>
@@ -478,21 +566,21 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-3 md:p-4">
+          <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-3 md:p-4">
             <p className="text-gray-400 text-xs mb-1">Total de Clientes</p>
             <p className="text-xl md:text-2xl font-bold text-white">{clients.length}</p>
           </div>
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-3 md:p-4">
+          <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-3 md:p-4">
             <p className="text-gray-400 text-xs mb-1">Clientes Ativos</p>
             <p className="text-xl md:text-2xl font-bold text-green-400">{totalAtivos}</p>
           </div>
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-3 md:p-4">
+          <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-3 md:p-4">
             <p className="text-gray-400 text-xs mb-1">Budget Total (ativos)</p>
             <p className="text-xl md:text-2xl font-bold text-white">
               R$ {totalBudget.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}
             </p>
           </div>
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-3 md:p-4">
+          <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-3 md:p-4">
             <p className="text-gray-400 text-xs mb-1">Diárias de hoje</p>
             <p className="text-xl md:text-2xl font-bold text-white">{completedDailyTasks}<span className="text-sm text-gray-500">/{totalDailyTasks}</span></p>
             <div className="mt-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
@@ -501,7 +589,203 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Filters */}
+        {/* Calendário Semanal */}
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Esta Semana</span>
+          </div>
+          <WeeklyCalendarWidget />
+        </div>
+
+        {/* Kanban — Demandas Prioritárias */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Demandas Prioritárias</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {KANBAN_STAGES.map(stage => {
+              const stageTasks = allKanbanTasks.filter(t => t.stage === stage.id);
+              const PREVIEW_COUNT = 4;
+              const isExpanded = expandedStages.has(stage.id);
+              const visibleTasks = isExpanded ? stageTasks : stageTasks.slice(0, PREVIEW_COUNT);
+              const hiddenCount = stageTasks.length - PREVIEW_COUNT;
+              const isAddingHere = addingInStage === stage.id;
+
+              return (
+                <div
+                  key={stage.id}
+                  className={`${stage.bg} border ${stage.borderColor} rounded-xl p-3 min-h-[140px]`}
+                  onDragOver={e => e.preventDefault()}
+                  onDrop={e => {
+                    const taskId = Number(e.dataTransfer.getData("taskId"));
+                    if (taskId) updateTaskStage(taskId, stage.id);
+                  }}
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <h3 className={`text-sm font-semibold ${stage.textColor}`}>{stage.label}</h3>
+                    <span className={`text-xs font-medium ${stage.countBg} text-gray-300 px-2 py-0.5 rounded-full`}>
+                      {stageTasks.length}
+                    </span>
+                    <button
+                      onClick={() => { setAddingInStage(stage.id); setInlineForm({ client_id: "", title: "" }); }}
+                      className="ml-auto p-1 rounded-md text-gray-600 hover:text-white hover:bg-white/10 transition-colors"
+                      title={`Adicionar em "${stage.label}"`}
+                    >
+                      <Plus size={13} />
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {visibleTasks.map(task => (
+                      editingCardId === task.id ? (
+                        /* Inline edit form */
+                        <div key={task.id} className="bg-[#111118] border border-blue-500/40 rounded-lg p-3 space-y-2">
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${STATUS_DOT[task.client_status] || "bg-gray-500"}`} />
+                            <span className="text-[10px] font-medium text-gray-500 truncate">{task.client_name}</span>
+                          </div>
+                          <input
+                            type="text"
+                            autoFocus
+                            value={editCardTitle}
+                            onChange={e => setEditCardTitle(e.target.value)}
+                            onKeyDown={e => { if (e.key === "Enter") saveEditCard(); if (e.key === "Escape") setEditingCardId(null); }}
+                            className="w-full bg-[#1a1a1a] border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-blue-500"
+                            placeholder="Título da demanda..."
+                          />
+                          <div className="flex gap-1.5">
+                            <button
+                              onClick={saveEditCard}
+                              disabled={!editCardTitle.trim()}
+                              className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-medium bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded disabled:opacity-40 transition-all"
+                            >
+                              <Check size={11} /> Salvar
+                            </button>
+                            <button
+                              onClick={() => setEditingCardId(null)}
+                              className="px-3 py-1.5 text-xs text-gray-500 hover:text-white bg-white/5 hover:bg-white/10 rounded transition-colors"
+                            >
+                              <X size={11} />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Normal card */
+                        <div
+                          key={task.id}
+                          draggable
+                          onDragStart={e => e.dataTransfer.setData("taskId", String(task.id))}
+                          className="bg-[#111118] border border-white/[0.08] rounded-lg p-3 cursor-grab active:cursor-grabbing hover:border-blue-500/30 hover:shadow-[0_0_12px_rgba(59,130,246,0.07)] transition-all group"
+                        >
+                          <div className="flex items-center gap-1.5 mb-1.5">
+                            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${STATUS_DOT[task.client_status] || "bg-gray-500"}`} />
+                            <span className="text-[10px] font-medium text-gray-500 truncate flex-1">{task.client_name}</span>
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => { setEditingCardId(task.id); setEditCardTitle(task.title); }}
+                                className="p-1 rounded text-gray-600 hover:text-white hover:bg-white/10 transition-colors"
+                                title="Editar"
+                              >
+                                <Pencil size={10} />
+                              </button>
+                              <button
+                                onClick={() => deleteKanbanCard(task.id)}
+                                className="p-1 rounded text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                                title="Excluir"
+                              >
+                                <Trash2 size={10} />
+                              </button>
+                            </div>
+                          </div>
+                          <p className="text-sm text-white leading-snug">{task.title}</p>
+                          <div className="flex items-center justify-end gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {stage.id !== "a_fazer" && (
+                              <button
+                                onClick={() => { const idx = KANBAN_STAGES.findIndex(s => s.id === stage.id); if (idx > 0) updateTaskStage(task.id, KANBAN_STAGES[idx - 1].id); }}
+                                className="px-2 py-0.5 rounded text-xs text-gray-500 hover:text-white hover:bg-white/10 transition-colors"
+                              >←</button>
+                            )}
+                            {stage.id !== "concluido" && (
+                              <button
+                                onClick={() => { const idx = KANBAN_STAGES.findIndex(s => s.id === stage.id); if (idx < KANBAN_STAGES.length - 1) updateTaskStage(task.id, KANBAN_STAGES[idx + 1].id); }}
+                                className="px-2 py-0.5 rounded text-xs text-gray-500 hover:text-white hover:bg-white/10 transition-colors"
+                              >→</button>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    ))}
+
+                    {/* Ver mais / Ver menos */}
+                    {stageTasks.length > PREVIEW_COUNT && (
+                      <button
+                        onClick={() => setExpandedStages(prev => {
+                          const next = new Set(prev);
+                          if (next.has(stage.id)) next.delete(stage.id); else next.add(stage.id);
+                          return next;
+                        })}
+                        className="w-full text-center text-xs text-gray-500 hover:text-gray-300 py-1.5 border border-dashed border-white/[0.06] rounded-lg hover:border-white/[0.12] transition-all"
+                      >
+                        {isExpanded ? "Ver menos ↑" : `Ver mais +${hiddenCount}`}
+                      </button>
+                    )}
+
+                    {/* Inline add form */}
+                    {isAddingHere ? (
+                      <div className="bg-[#111118] border border-blue-500/40 rounded-lg p-3 space-y-2">
+                        <select
+                          autoFocus
+                          value={inlineForm.client_id}
+                          onChange={e => setInlineForm(f => ({ ...f, client_id: e.target.value }))}
+                          className="w-full bg-[#1a1a1a] border border-white/10 rounded px-2 py-1.5 text-xs text-white outline-none focus:border-blue-500"
+                        >
+                          <option value="">Selecionar cliente...</option>
+                          {clients.map(c => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                          ))}
+                        </select>
+                        <input
+                          type="text"
+                          value={inlineForm.title}
+                          onChange={e => setInlineForm(f => ({ ...f, title: e.target.value }))}
+                          onKeyDown={e => { if (e.key === "Enter") addCardInline(); if (e.key === "Escape") setAddingInStage(null); }}
+                          className="w-full bg-[#1a1a1a] border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-blue-500"
+                          placeholder="Título da demanda..."
+                        />
+                        <div className="flex gap-1.5">
+                          <button
+                            onClick={addCardInline}
+                            disabled={!inlineForm.client_id || !inlineForm.title.trim()}
+                            className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-medium bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded disabled:opacity-40 transition-all"
+                          >
+                            <Check size={11} /> Adicionar
+                          </button>
+                          <button
+                            onClick={() => setAddingInStage(null)}
+                            className="px-3 py-1.5 text-xs text-gray-500 hover:text-white bg-white/5 hover:bg-white/10 rounded transition-colors"
+                          >
+                            <X size={11} />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      stageTasks.length === 0 && (
+                        <div
+                          onClick={() => { setAddingInStage(stage.id); setInlineForm({ client_id: "", title: "" }); }}
+                          className="text-center text-gray-600 hover:text-gray-500 text-xs py-5 border border-dashed border-white/[0.06] rounded-lg cursor-pointer hover:border-white/[0.12] transition-all"
+                        >
+                          + Adicionar card
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Filtros de clientes */}
         <div className="flex gap-2 mb-4 flex-wrap">
           <input
             type="text"
@@ -523,14 +807,14 @@ export default function Home() {
           </select>
           <button
             onClick={() => setFilterPending(p => !p)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${filterPending ? "bg-blue-600 text-white" : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"}`}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${filterPending ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-sm shadow-blue-500/30 text-white" : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"}`}
           >
             <span className="w-2 h-2 rounded-full bg-current" />
             Só pendentes hoje
           </button>
         </div>
 
-        {/* Header columns + list wrapped for horizontal scroll on mobile */}
+        {/* Lista de Clientes */}
         <div className="overflow-x-auto -mx-3 md:mx-0 px-3 md:px-0">
         <div className="min-w-[700px]">
         {filtered.length > 0 && (
@@ -570,7 +854,7 @@ export default function Home() {
               const archivedTasks = tasks.filter((t) => t.type === "prioritaria" && t.archived);
 
               return (
-                <div key={c.id} className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden">
+                <div key={c.id} className="bg-[#111118] border border-white/[0.08] rounded-xl overflow-hidden">
                   {/* Row */}
                   <div className="grid grid-cols-[20px_160px_90px_78px_96px_78px_1fr_1fr_130px_52px] gap-3 items-center px-4 py-3 group hover:bg-white/[0.02] transition-colors">
                     {/* Expand */}
@@ -802,7 +1086,7 @@ export default function Home() {
 
                   {/* Expanded panel */}
                   {isOpen && (
-                    <div className="border-t border-white/10 bg-[#161616] px-5 py-4 grid grid-cols-3 gap-6">
+                    <div className="border-t border-white/[0.08] bg-[#0c0c14] px-5 py-4 grid grid-cols-3 gap-6">
                       {/* Client info */}
                       <div>
                         <p className="text-xs text-gray-500 uppercase tracking-wide mb-3">Informações</p>
@@ -924,7 +1208,7 @@ export default function Home() {
                             <option value="prioritaria">Prioritária</option>
                           </select>
                           <button onClick={() => addTask(c.id)}
-                            className="p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                            className="p-1.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-sm shadow-blue-500/30 text-white rounded-lg transition-colors">
                             <Plus size={14} />
                           </button>
                         </div>
@@ -946,7 +1230,7 @@ export default function Home() {
                           />
                           <button
                             onClick={() => addComment(c.id)}
-                            className="self-end flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                            className="self-end flex items-center gap-1.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-sm shadow-blue-500/30 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
                           >
                             <Send size={12} /> Salvar
                           </button>
@@ -989,7 +1273,7 @@ export default function Home() {
       {/* Report Modal */}
       {showReport && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl w-full max-w-5xl flex flex-col max-h-[90vh]">
+          <div className="bg-[#0c0c14] border border-white/[0.08] rounded-2xl w-full max-w-5xl flex flex-col max-h-[90vh]">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <div>
                 <h2 className="text-base font-semibold text-white">Relatório Geral</h2>
@@ -1002,7 +1286,7 @@ export default function Home() {
                     setCopied(true);
                     setTimeout(() => setCopied(false), 2000);
                   }}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${copied ? "bg-green-600 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${copied ? "bg-green-600 text-white" : "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-sm shadow-blue-500/30 text-white"}`}
                 >
                   {copied ? <><Check size={14} /> Copiado!</> : <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copiar tudo</>}
                 </button>
@@ -1031,7 +1315,7 @@ export default function Home() {
       {/* New Client Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl w-full max-w-lg">
+          <div className="bg-[#0c0c14] border border-white/[0.08] rounded-2xl w-full max-w-lg">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <h2 className="font-semibold text-white">Novo Cliente</h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white"><X size={18} /></button>
@@ -1090,7 +1374,7 @@ export default function Home() {
                   Cancelar
                 </button>
                 <button type="submit"
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-sm shadow-blue-500/30 text-white rounded-lg py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2">
                   <Check size={15} /> Adicionar
                 </button>
               </div>

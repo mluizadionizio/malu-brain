@@ -212,7 +212,7 @@ function NoteableCell({ value, desc, label, placeholder, onChangeValue, onChange
 
       {editingDesc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={commitDesc}>
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-4 w-80 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-4 w-80 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-medium text-white">{label}</p>
               <button onClick={commitDesc} className="text-gray-400 hover:text-white"><X size={16} /></button>
@@ -227,7 +227,7 @@ function NoteableCell({ value, desc, label, placeholder, onChangeValue, onChange
               className="w-full bg-[#252525] border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-blue-500 resize-none placeholder-gray-600"
             />
             <div className="flex justify-end gap-2 mt-3">
-              <button onClick={commitDesc} className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">Salvar</button>
+              <button onClick={commitDesc} className="px-3 py-1.5 text-sm bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-sm shadow-blue-500/30 text-white rounded-lg transition-colors">Salvar</button>
             </div>
           </div>
         </div>
@@ -339,10 +339,10 @@ export default function FinancasPage() {
   return (
     <div className="min-h-screen bg-[#0f0f0f]">
       {/* Header */}
-      <div className="border-b border-white/10 bg-[#161616]">
+      <div className="border-b border-white/[0.08] bg-[#0c0c14]">
         <div className="px-3 md:px-6 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-lg md:text-xl font-bold text-white">Finanças</h1>
+            <h1 className="text-lg md:text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Finanças</h1>
             <p className="text-xs md:text-sm text-gray-400">Controle de entradas e saídas</p>
           </div>
           <div className="flex items-center gap-2">
@@ -362,19 +362,19 @@ export default function FinancasPage() {
       <div className="px-3 md:px-6 py-4 md:py-6">
         {/* Summary cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-3 md:p-4">
+          <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-3 md:p-4">
             <p className="text-gray-400 text-xs mb-1">Entradas</p>
             <p className="text-base md:text-xl font-bold text-green-400">R$ {fmt(totalEntrada)}</p>
           </div>
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-3 md:p-4">
+          <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-3 md:p-4">
             <p className="text-gray-400 text-xs mb-1">Saídas</p>
             <p className="text-base md:text-xl font-bold text-red-400">R$ {fmt(totalSaida)}</p>
           </div>
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-3 md:p-4">
+          <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-3 md:p-4">
             <p className="text-gray-400 text-xs mb-1">Gastos Diários</p>
             <p className="text-base md:text-xl font-bold text-orange-400">R$ {fmt(totalDiario)}</p>
           </div>
-          <div className={`bg-[#1a1a1a] border rounded-xl p-3 md:p-4 ${saldoFinal >= 0 ? "border-green-500/30" : "border-red-500/30"}`}>
+          <div className={`bg-[#111118] rounded-xl p-3 md:p-4 ${saldoFinal >= 0 ? "border border-green-500/30" : "border border-red-500/30"}`}>
             <p className="text-gray-400 text-xs mb-1">Saldo Líquido</p>
             <p className={`text-base md:text-xl font-bold ${saldoFinal >= 0 ? "text-green-400" : "text-red-400"}`}>
               R$ {fmtSaldo(saldoFinal)}
@@ -384,7 +384,7 @@ export default function FinancasPage() {
 
         {/* Bulk action bar */}
         {selectedDays.size > 0 && (
-          <div className="mb-3 flex items-center gap-2 bg-[#1a1a1a] border border-blue-500/30 rounded-xl px-4 py-2.5 flex-wrap">
+          <div className="mb-3 flex items-center gap-2 bg-blue-500/[0.07] border border-blue-500/30 rounded-xl px-4 py-2.5 flex-wrap">
             <span className="text-xs text-blue-400 font-medium">{selectedDays.size} dia{selectedDays.size !== 1 ? "s" : ""} selecionado{selectedDays.size !== 1 ? "s" : ""}</span>
             <span className="text-gray-700">·</span>
             <span className="text-xs text-gray-500">Preencher:</span>
@@ -400,10 +400,10 @@ export default function FinancasPage() {
         )}
 
         {/* Table */}
-        <div className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden">
+        <div className="bg-[#111118] border border-white/[0.08] rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
           <div className="min-w-[510px]">
-          <div className="grid grid-cols-[28px_44px_1fr_1fr_1fr_1fr] border-b border-white/10 bg-[#161616]">
+          <div className="grid grid-cols-[28px_44px_1fr_1fr_1fr_1fr] border-b border-white/10 bg-[#0c0c14]">
             <div className="px-1 py-3 flex items-center justify-center">
               <button
                 onClick={() => selectedDays.size === days ? clearSelection() : selectAll()}
@@ -478,7 +478,7 @@ export default function FinancasPage() {
                 );
               })}
 
-              <div className="grid grid-cols-[28px_44px_1fr_1fr_1fr_1fr] bg-[#161616] border-t border-white/10">
+              <div className="grid grid-cols-[28px_44px_1fr_1fr_1fr_1fr] bg-[#0c0c14] border-t border-white/10">
                 <div />
                 <div className="px-3 py-3 text-xs text-gray-500 font-medium">Total</div>
                 <div className="px-2 py-3 text-sm text-right font-semibold text-green-400">{fmt(totalEntrada)}</div>
@@ -498,7 +498,7 @@ export default function FinancasPage() {
       {/* Bulk fill modal */}
       {bulkModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl w-full max-w-xs shadow-2xl">
+          <div className="bg-[#0c0c14] border border-white/[0.08] rounded-2xl w-full max-w-xs shadow-2xl">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <p className="text-white font-semibold">
                 Preencher {bulkModal.field === "entrada" ? "Entrada" : bulkModal.field === "saida" ? "Saída" : "Diário"}
@@ -521,7 +521,7 @@ export default function FinancasPage() {
               </div>
               <div className="flex gap-2 pt-1">
                 <button onClick={() => setBulkModal(null)} className="flex-1 px-4 py-2 text-sm text-gray-400 bg-white/5 hover:bg-white/10 rounded-lg transition-colors">Cancelar</button>
-                <button onClick={applyBulk} disabled={!bulkModal.value.trim()} className="flex-1 px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg transition-colors">Aplicar</button>
+                <button onClick={applyBulk} disabled={!bulkModal.value.trim()} className="flex-1 px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-sm shadow-blue-500/30 disabled:opacity-50 text-white rounded-lg transition-colors">Aplicar</button>
               </div>
             </div>
           </div>

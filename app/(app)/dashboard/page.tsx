@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { TrendingUp, DollarSign, Sun, BookOpen, ChevronRight } from "lucide-react";
+import { TrendingUp, DollarSign, Sun, BookOpen, ChevronRight, CalendarDays } from "lucide-react";
+import WeeklyCalendarWidget from "@/app/components/WeeklyCalendarWidget";
 
 const MONTHS_FULL = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const DAYS_FULL = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
@@ -19,11 +20,11 @@ function SectionHeader({ icon, title, href, sub }: { icon: React.ReactNode; titl
   return (
     <div className="flex items-center justify-between mb-3">
       <div className="flex items-center gap-2">
-        <span className="text-gray-400">{icon}</span>
+        <span className="text-blue-400">{icon}</span>
         <h2 className="text-sm font-semibold text-white">{title}</h2>
         {sub && <span className="text-xs text-gray-600">{sub}</span>}
       </div>
-      <Link href={href} className="flex items-center gap-0.5 text-xs text-gray-600 hover:text-gray-400 transition-colors">
+      <Link href={href} className="flex items-center gap-0.5 text-xs text-blue-500/50 hover:text-blue-400 transition-colors">
         Ver tudo <ChevronRight size={12} />
       </Link>
     </div>
@@ -32,7 +33,7 @@ function SectionHeader({ icon, title, href, sub }: { icon: React.ReactNode; titl
 
 function Card({ label, value, sub, color = "text-white" }: { label: string; value: string | number; sub?: string; color?: string }) {
   return (
-    <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-3 md:p-4">
+    <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-3 md:p-4 hover:border-blue-500/25 hover:shadow-[0_0_20px_rgba(59,130,246,0.06)] transition-all">
       <p className="text-gray-500 text-xs mb-1">{label}</p>
       <p className={`text-lg md:text-xl font-bold ${color} leading-tight`}>{value}</p>
       {sub && <p className="text-xs text-gray-600 mt-0.5">{sub}</p>}
@@ -108,18 +109,18 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <p className="text-gray-600 text-sm">Carregando...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f]">
+    <div className="min-h-screen">
       {/* Header */}
-      <div className="border-b border-white/10 bg-[#161616]">
+      <div className="border-b border-white/[0.08] bg-[#0c0c14]">
         <div className="px-3 md:px-6 py-5">
-          <h1 className="text-xl font-bold text-white">{greeting}! 👋</h1>
+          <h1 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">{greeting}! 👋</h1>
           <p className="text-sm text-gray-400 mt-0.5">{dateLabel}</p>
         </div>
       </div>
@@ -157,7 +158,7 @@ export default function DashboardPage() {
             <Card label="Clientes Ativos" value={ativos.length} sub={`de ${clients.length} total`} />
             <Card label="Orçamento Total" value={fmtBRL(totalBudget)} sub="clientes ativos" color="text-blue-400" />
             <Card label="Tarefas Pendentes" value={tarefasPendentes} color={tarefasPendentes > 0 ? "text-yellow-400" : "text-green-400"} />
-            <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-3 md:p-4">
+            <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-3 md:p-4 hover:border-blue-500/25 hover:shadow-[0_0_20px_rgba(59,130,246,0.06)] transition-all">
               <p className="text-gray-500 text-xs mb-2">Por status</p>
               <div className="space-y-1">
                 {[
@@ -186,7 +187,7 @@ export default function DashboardPage() {
             sub="— Hoje"
           />
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-3 md:p-4">
+            <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-3 md:p-4 hover:border-blue-500/25 hover:shadow-[0_0_20px_rgba(59,130,246,0.06)] transition-all">
               <p className="text-gray-500 text-xs mb-1">To-Dos hoje</p>
               <p className="text-lg md:text-xl font-bold text-white leading-tight">
                 {todosDone}<span className="text-gray-600 text-base font-normal">/{todosTotal}</span>
@@ -198,7 +199,7 @@ export default function DashboardPage() {
               )}
               {todosTotal === 0 && <p className="text-xs text-gray-600 mt-0.5">Nenhuma tarefa</p>}
             </div>
-            <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-3 md:p-4">
+            <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-3 md:p-4 hover:border-blue-500/25 hover:shadow-[0_0_20px_rgba(59,130,246,0.06)] transition-all">
               <p className="text-gray-500 text-xs mb-1">Hábitos hoje</p>
               <p className="text-lg md:text-xl font-bold text-white leading-tight">
                 {habitsDone}<span className="text-gray-600 text-base font-normal">/{habitsTotal}</span>
@@ -225,6 +226,16 @@ export default function DashboardPage() {
             <Card label="Sessões feitas" value={sessionsDone} sub={`em ${MONTHS_PT[month - 1]}`} color="text-blue-400" />
             <Card label="Dias estudados" value={daysStudied} sub={`de ${new Date(year, month, 0).getDate()} dias`} />
           </div>
+        </div>
+
+        {/* Calendário Semanal */}
+        <div>
+          <SectionHeader
+            icon={<CalendarDays size={15} />}
+            title="Esta Semana"
+            href="/calendario"
+          />
+          <WeeklyCalendarWidget />
         </div>
 
       </div>

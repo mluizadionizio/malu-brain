@@ -126,6 +126,7 @@ export async function initDb() {
     'ALTER TABLE finance_entries ADD COLUMN diario_desc TEXT',
     'ALTER TABLE study_topics ADD COLUMN total_modules INTEGER',
     'ALTER TABLE todos ADD COLUMN task_id INTEGER',
+    "ALTER TABLE tasks ADD COLUMN stage TEXT DEFAULT 'a_fazer'",
   ];
   for (const sql of migrations) {
     try { await db.execute({ sql, args: [] }); } catch {}
