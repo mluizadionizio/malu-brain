@@ -12,8 +12,26 @@ html[data-theme="dark"] {
 }
 
 html[data-theme="light"] {
-  --background: #ffffff;
+  --background: #f5f5f5;
   --foreground: #1a1a1a;
+  --sidebar-bg: #ffffff;
+  --sidebar-border: rgba(0,0,0,0.08);
+  --nav-hover-bg: rgba(0,0,0,0.05);
+  --nav-active-text: #1e3a8a;
+  --nav-text: #555;
+  --card-bg: #ffffff;
+  --card-border: rgba(0,0,0,0.08);
+}
+
+:root,
+html[data-theme="dark"] {
+  --sidebar-bg: #0c0c14;
+  --sidebar-border: rgba(255,255,255,0.08);
+  --nav-hover-bg: rgba(255,255,255,0.05);
+  --nav-active-text: #ffffff;
+  --nav-text: #9ca3af;
+  --card-bg: #1a1a2e;
+  --card-border: rgba(255,255,255,0.08);
 }
 
 @theme inline {
