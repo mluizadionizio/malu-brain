@@ -5,7 +5,16 @@ const db = createClient({
   authToken: process.env.TURSO_AUTH_TOKEN!,
 });
 
+// Singleton: executa apenas uma vez por processo, não a cada request
+let _initPromise: Promise<void> | null = null;
+
 export async function initDb() {
+  if (_initPromise) return _initPromise;
+  _initPromise = _doInit();
+  return _initPromise;
+}
+
+async function _doInit() {
   await db.executeMultiple(`
     CREATE TABLE IF NOT EXISTS clients (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
