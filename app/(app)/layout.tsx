@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { TrendingUp, DollarSign, Calendar, Sun, BookOpen, LayoutDashboard } from "lucide-react";
+import { ThemeToggle } from "@/app/components/ThemeToggle";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -50,10 +51,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="px-5 py-4 border-t border-white/10">
+        <div className="px-5 py-4 border-t border-white/10 space-y-3">
+          <div className="flex justify-center">
+            <ThemeToggle />
+          </div>
           <button
             onClick={() => { localStorage.removeItem("malu_auth"); router.replace("/login"); }}
-            className="text-xs text-gray-600 hover:text-gray-400 transition-colors"
+            className="w-full text-xs text-gray-600 hover:text-gray-400 transition-colors text-center"
           >
             Sair
           </button>

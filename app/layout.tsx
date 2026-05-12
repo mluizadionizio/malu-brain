@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ThemeProvider } from "./components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "Gestão de Clientes",
@@ -12,8 +13,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className="h-full">
-      <body className="min-h-full bg-[#0f0f0f] text-[#f0f0f0]">{children}</body>
+    <html lang="pt-BR" className="h-full" suppressHydrationWarning>
+      <body className="min-h-full bg-[var(--background)] text-[var(--foreground)]">
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }
