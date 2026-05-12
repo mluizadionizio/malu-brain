@@ -5,33 +5,27 @@ html {
   color-scheme: light dark;
 }
 
+/* ── Dark mode (padrão) ───────────────────────────── */
 :root,
 html[data-theme="dark"] {
-  --background: #0f0f0f;
-  --foreground: #f0f0f0;
+  --background:       #0f0f0f;
+  --foreground:       #f0f0f0;
+  --sidebar-bg:       #0c0c14;
+  --sidebar-border:   rgba(255,255,255,0.08);
+  --nav-hover-bg:     rgba(255,255,255,0.05);
+  --nav-active-text:  #ffffff;
+  --nav-text:         #9ca3af;
 }
 
+/* ── Light mode ───────────────────────────────────── */
 html[data-theme="light"] {
-  --background: #f5f5f5;
-  --foreground: #1a1a1a;
-  --sidebar-bg: #ffffff;
-  --sidebar-border: rgba(0,0,0,0.08);
-  --nav-hover-bg: rgba(0,0,0,0.05);
-  --nav-active-text: #1e3a8a;
-  --nav-text: #555;
-  --card-bg: #ffffff;
-  --card-border: rgba(0,0,0,0.08);
-}
-
-:root,
-html[data-theme="dark"] {
-  --sidebar-bg: #0c0c14;
-  --sidebar-border: rgba(255,255,255,0.08);
-  --nav-hover-bg: rgba(255,255,255,0.05);
-  --nav-active-text: #ffffff;
-  --nav-text: #9ca3af;
-  --card-bg: #1a1a2e;
-  --card-border: rgba(255,255,255,0.08);
+  --background:       #f0f4f8;
+  --foreground:       #111827;
+  --sidebar-bg:       #ffffff;
+  --sidebar-border:   rgba(0,0,0,0.08);
+  --nav-hover-bg:     rgba(0,0,0,0.04);
+  --nav-active-text:  #1d4ed8;
+  --nav-text:         #6b7280;
 }
 
 @theme inline {
@@ -46,4 +40,107 @@ body {
   color: var(--foreground);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ════════════════════════════════════════════════════
+   LIGHT MODE — Override de classes Tailwind hardcoded
+   Hierarquia de tons (escuro → claro):
+   #0f0f0f / #0c0c14  →  página / header        → #f0f4f8 / #ffffff
+   #111118 / #161616  →  cards, rows            → #ffffff
+   #111    / #1a1a1a  →  inputs, areas menores  → #f1f5f9
+   #252525 / #1f1f1f  →  inputs modal           → #e8edf5
+   ════════════════════════════════════════════════════ */
+
+/* ── Backgrounds principais ───────────────────────── */
+html[data-theme="light"] .bg-\[\#0f0f0f\]  { background-color: #f0f4f8 !important; }
+html[data-theme="light"] .bg-\[\#0c0c14\]  { background-color: #ffffff !important; }
+html[data-theme="light"] .bg-\[\#111118\]  { background-color: #ffffff !important; }
+html[data-theme="light"] .bg-\[\#161616\]  { background-color: #f8fafc !important; }
+html[data-theme="light"] .bg-\[\#1f1f1f\]  { background-color: #f1f5f9 !important; }
+html[data-theme="light"] .bg-\[\#111\]     { background-color: #f1f5f9 !important; }
+html[data-theme="light"] .bg-\[\#1a1a1a\]  { background-color: #f1f5f9 !important; }
+html[data-theme="light"] .bg-\[\#252525\]  { background-color: #e8edf5 !important; }
+
+/* ── Backgrounds semi-transparentes brancos ───────── */
+html[data-theme="light"] .bg-white\/\[0\.01\] { background-color: rgba(0,0,0,0.01) !important; }
+html[data-theme="light"] .bg-white\/\[0\.02\] { background-color: rgba(0,0,0,0.02) !important; }
+html[data-theme="light"] .bg-white\/\[0\.03\] { background-color: rgba(0,0,0,0.02) !important; }
+html[data-theme="light"] .bg-white\/\[0\.06\] { background-color: rgba(0,0,0,0.04) !important; }
+html[data-theme="light"] .bg-white\/\[0\.08\] { background-color: rgba(0,0,0,0.04) !important; }
+html[data-theme="light"] .bg-white\/5         { background-color: rgba(0,0,0,0.03) !important; }
+html[data-theme="light"] .bg-white\/10        { background-color: rgba(0,0,0,0.05) !important; }
+html[data-theme="light"] .bg-white\/15        { background-color: rgba(0,0,0,0.07) !important; }
+
+/* ── Hover: bg branco → cinza leve ───────────────── */
+html[data-theme="light"] .hover\:bg-white\/5:hover   { background-color: rgba(0,0,0,0.04) !important; }
+html[data-theme="light"] .hover\:bg-white\/10:hover  { background-color: rgba(0,0,0,0.06) !important; }
+html[data-theme="light"] .hover\:bg-white\/15:hover  { background-color: rgba(0,0,0,0.08) !important; }
+
+/* ── Borders ──────────────────────────────────────── */
+html[data-theme="light"] .border-white\/5          { border-color: #e2e8f0 !important; }
+html[data-theme="light"] .border-white\/\[0\.06\]  { border-color: #e2e8f0 !important; }
+html[data-theme="light"] .border-white\/\[0\.07\]  { border-color: #e2e8f0 !important; }
+html[data-theme="light"] .border-white\/\[0\.08\]  { border-color: #e2e8f0 !important; }
+html[data-theme="light"] .border-white\/10         { border-color: #d1dce8 !important; }
+html[data-theme="light"] .border-white\/\[0\.12\]  { border-color: #cbd5e1 !important; }
+html[data-theme="light"] .border-white\/15         { border-color: #cbd5e1 !important; }
+html[data-theme="light"] .border-white\/20         { border-color: #bfcad8 !important; }
+html[data-theme="light"] .border-white\/30         { border-color: #94a3b8 !important; }
+html[data-theme="light"] .border-white\/40         { border-color: #64748b !important; }
+html[data-theme="light"] .border-dashed.border-white\/\[0\.06\] { border-color: #d1dce8 !important; }
+
+/* ── Textos: branco e cinzas → escala clara ───────── */
+html[data-theme="light"] .text-white   { color: #111827 !important; }
+html[data-theme="light"] .text-gray-200 { color: #4b5563 !important; }
+html[data-theme="light"] .text-gray-300 { color: #374151 !important; }
+html[data-theme="light"] .text-gray-400 { color: #6b7280 !important; }
+html[data-theme="light"] .text-gray-500 { color: #9ca3af !important; }
+html[data-theme="light"] .text-gray-600 { color: #c4cdd8 !important; }
+html[data-theme="light"] .text-gray-700 { color: #d1dce8 !important; }
+
+/* ── Proteger texto branco em botões/badges coloridos ── */
+html[data-theme="light"] .from-blue-500.text-white,
+html[data-theme="light"] .from-blue-400.text-white,
+html[data-theme="light"] .from-green-500.text-white,
+html[data-theme="light"] .bg-blue-500.text-white,
+html[data-theme="light"] .bg-blue-600.text-white,
+html[data-theme="light"] .bg-green-600.text-white,
+html[data-theme="light"] .bg-red-600.text-white    { color: #ffffff !important; }
+
+/* ── Hover "hover:text-white" → texto escuro ─────── */
+html[data-theme="light"] .hover\:text-white:hover { color: #111827 !important; }
+
+/* ── Kanban stages: fundo tintado leve ───────────── */
+html[data-theme="light"] .bg-white\/\[0\.03\]      { background-color: #fafbfd !important; }
+html[data-theme="light"] .bg-blue-500\/\[0\.05\]   { background-color: rgba(59,130,246,0.06) !important; }
+html[data-theme="light"] .bg-green-500\/\[0\.05\]  { background-color: rgba(34,197,94,0.06)  !important; }
+
+/* ── Kanban: contador de badges (bg semi-transp) ─── */
+html[data-theme="light"] .bg-white\/\[0\.08\]      { background-color: rgba(0,0,0,0.05) !important; }
+html[data-theme="light"] .bg-blue-500\/20           { background-color: rgba(59,130,246,0.12) !important; }
+html[data-theme="light"] .bg-green-500\/20          { background-color: rgba(34,197,94,0.12)  !important; }
+
+/* ── Inputs e selects ────────────────────────────── */
+html[data-theme="light"] input.text-white,
+html[data-theme="light"] select.text-white,
+html[data-theme="light"] textarea.text-white        { color: #111827 !important; }
+
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder      { color: #9ca3af !important; }
+
+/* ── Gradient heading (de white para gray) ───────── */
+html[data-theme="light"] .from-white       { --tw-gradient-from: #111827 !important; }
+html[data-theme="light"] .to-gray-300      { --tw-gradient-to:   #374151 !important; }
+
+/* ── Scrollbar ───────────────────────────────────── */
+html[data-theme="light"] ::-webkit-scrollbar        { width: 6px; height: 6px; }
+html[data-theme="light"] ::-webkit-scrollbar-track  { background: #f1f5f9; }
+html[data-theme="light"] ::-webkit-scrollbar-thumb  { background: #cbd5e1; border-radius: 3px; }
+html[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* ── Transição suave para todos os elementos ──────── */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
 }
