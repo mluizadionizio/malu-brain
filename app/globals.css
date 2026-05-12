@@ -1,13 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+html {
+  color-scheme: light dark;
+}
+
 :root,
-[data-theme="dark"] {
+html[data-theme="dark"] {
   --background: #0f0f0f;
   --foreground: #f0f0f0;
 }
 
-[data-theme="light"] {
+html[data-theme="light"] {
   --background: #ffffff;
   --foreground: #1a1a1a;
 }
